@@ -3,6 +3,7 @@
 
 - city
 - city_alternate_name
+- city_code
 
 ### city
 ---
@@ -18,6 +19,7 @@
 
 ### city_code
 ---
+
 
 | ID | type | code |
 |- | -| -|
