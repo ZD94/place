@@ -1,0 +1,32 @@
+{
+  "name": "place",
+  "version": "1.0.0",
+  "description": "jingli.tech place service",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.l.jingli365.com:svr/place.git"
+  },
+  "keywords": [
+    "jingli",
+    "place",
+    "service"
+  ],
+  "author": "lihui.wang@jingli365.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@jingli/database": "^1.0.1",
+    "@types/node": "^8.0.14",
+    "@types/pg": "^6.1.42",
+    "@types/sequelize": "^4.0.65",
+    "ts-node": "^3.2.0",
+    "tslib": "^1.7.1"
+  },
+  "dependencies": {
+    "pg": "^7.0.0",
+    "sequelize": "^4.3.2"
+  }
+}
