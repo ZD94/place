@@ -4,7 +4,8 @@
   "description": "jingli.tech place service",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "dist": "tsc && mkdir -p dist/config && cp -Rf config/config.json dist/config/config.json && cp package.json dist/"
   },
   "repository": {
     "type": "git",
