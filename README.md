@@ -22,9 +22,6 @@
 | pinyin   | varchar(50)  | 拼音   | beijing |
 
 
-| id | name | type | letter | timezone | location | parentId | pinyin | 
-| -  | -    | -    | -      | -        | -        | -        | -      |
-
 ### city_alternate_name
 ---
 
@@ -37,9 +34,6 @@
 
 
 
-| id | city_id | lang | value | 
-| -  | -       |-    | -     |
-
 ### city_code
 ---
 
@@ -50,8 +44,6 @@
 | code   | varchar(50) | 城市三字码,城市二字码,天巡code，百度code,携程code...| BJS | 
 | type   | integer | 类型 | 1.天巡 2. 携程 3. 城市三字码 ...|
 
-| ID | city_id| type | code |
-|- | -| -| -|
 
 
 ## 接口设计
