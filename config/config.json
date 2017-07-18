@@ -1,4 +1,7 @@
 {
   "appName": "${JL_APP_NAME}",
-  "listen": "${JL_APP_PORT}"
+  "listen": "${JL_APP_PORT}",
+  "postgres": {
+    "url": "JL_APP_POSTGRES_URL"
+  }
 }

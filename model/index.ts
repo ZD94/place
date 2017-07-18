@@ -3,3 +3,6 @@
  */
 
 'use strict';
+import path = require("path");
+import {DB} from "@jingli/database";
+DB.models['Place'] = DB.import(path.join(__dirname, './place'));
