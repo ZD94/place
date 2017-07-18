@@ -1,9 +1,9 @@
 # 地点信息
 ---
 
-- city
-- city_alternate_name
-- city_code
+- city 城市基本信息
+- city_alternate_name 城市别名
+- city_code 城市code
 
 ### city
 ---
