@@ -1,7 +1,8 @@
 # 地点信息
 ---
 
-. city
+- city
+- city_alternate_name
 
 ### city
 ---
