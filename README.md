@@ -56,3 +56,6 @@
 - 城市别名     GET /api/v1/city/:id/altername/:lang
 - 城市全部code GET /api/v1/city/:id/code/
 - 城市code     GET /api/v1/city/:id/code/:type
+
+1. 接口命名规则采用restful规范
+2. 请求接口时，先不做任何认证校验
