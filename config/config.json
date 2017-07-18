@@ -1,0 +1,4 @@
+{
+  "appName": "${JL_APP_NAME}",
+  "listen": "${JL_APP_PORT}"
+}
