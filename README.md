@@ -1,5 +1,7 @@
 # 地点信息
 
+## 数据库设计
+
 - city 城市基本信息
 - city_alternate_name 城市别名
 - city_code 城市code
@@ -45,10 +47,11 @@
 |-       | -    | -    | -    |
 | id     | integer | ID | 1   |
 | city_id | varchar(50) | 城市ID | CT_131 |
-| code   | varchar(50) | 城市三字码,城市二字码,天巡code，百度code,携程code...|
+| code   | varchar(50) | 城市三字码,城市二字码,天巡code，百度code,携程code...| BJS | 
 | type   | integer | 类型 | 1.天巡 2. 携程 3. 城市三字码 ...|
 
 | ID | city_id| type | code |
 |- | -| -| -|
 
 
+## 接口设计
