@@ -16,3 +16,9 @@
 | ID | lang | value | 
 | -  | -    | -     |
 
+### city_code
+---
+
+| ID | type | code |
+|- | -| -|
+
