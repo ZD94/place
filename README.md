@@ -55,3 +55,12 @@
 
 
 ## 接口设计
+---
+
+- 城市详情     GET /api/v1/city/:ID
+- 城市下一级   GET /api/v1/city/:ID/children
+- 城市上一级   GET /api/v1/city/:ID/parent
+- 城市全部别名 GET /api/v1/city/:id/altername/
+- 城市别名     GET /api/v1/city/:id/altername/:lang
+- 城市全部code GET /api/v1/city/:id/code/
+- 城市code     GET /api/v1/city/:id/code/:type
