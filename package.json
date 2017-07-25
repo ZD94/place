@@ -31,7 +31,7 @@
   "dependencies": {
     "@jingli/config": "^1.0.6",
     "express": "^4.15.3",
-    "pg": "^7.0.0",
+    "pg": "6.4.1",
     "sequelize": "^4.3.2"
   }
 }
