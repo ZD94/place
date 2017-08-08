@@ -18,9 +18,11 @@ import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
 
 const KEY = [
-    'wanglihui', 'wanglihui_sjz', 'wangpeng',
+    'wangpeng',
     'zelinlee0303', 'zhangdong', 'zd12321',
-    'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121']
+    'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121',
+    'wanglihui', 'wanglihui_sjz',
+]
 
 let useNum = 0;
 let keyIndex = 0;
@@ -206,7 +208,7 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
     });
     let ps = place.alternateNames.map( async (altername) => {
         var cityAltname = DB.models.CityAltName.build({
-            city_id: city.id,
+            cityId: city.id,
             lang: altername.lang,
             value: altername.name,
         })
