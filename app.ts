@@ -4,7 +4,9 @@
 
 'use strict';
 
+//导入express模块
 import express = require("express");
+import {type} from "os";
 const app = express();
 
 app.get('/test', (req, res, next) => {
