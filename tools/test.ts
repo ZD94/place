@@ -157,11 +157,6 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
 
 async function savePlace(out: Console, place: GeoPlace, parentId: string) {
 
-    await DB.models.GeoName.create({
-        id: place.geonameId,
-        data: JSON.stringify(place),
-    });
-
     //查找中文名称
     let primaryName;
     let _alternames = place.alternateNames || []
@@ -194,6 +189,11 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
         return city;
     }
 
+    await DB.models.GeoName.create({
+        id: place.geonameId,
+        data: JSON.stringify(place),
+    });
+
     city = DB.models.City.build({
         id: place.geonameId,
         name: primaryName,
@@ -222,7 +222,7 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
     })
     await Promise.all(ps);
 
-    out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${place.timezone.timeZoneId},${letter.toUpperCase()},${py}`);
+    out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${letter.toUpperCase()},${py}`);
     // await Bluebird.delay(1500);
 }
 
