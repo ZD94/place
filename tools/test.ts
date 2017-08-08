@@ -166,6 +166,11 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
     let primaryName;
     let _alternames = place.alternateNames || []
     for (let altername of _alternames) {
+        if (!primaryName && altername.lang == 'en') {
+            primaryName = altername.name;
+            continue;
+        }
+
         if (altername.lang == 'zh') {
             primaryName = altername.name;
             break;
@@ -193,7 +198,7 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
         id: place.geonameId,
         name: primaryName,
         letter: letter.toUpperCase(),
-        timezone: place.timezone.timeZoneId,
+        timezone: place.timezone ? place.timezone.timeZoneId: '',
         lng:place.lng,
         lat:place.lat,
         parentId: parentId,
