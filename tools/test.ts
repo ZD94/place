@@ -17,7 +17,10 @@ import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
 
-const KEY = ['wanglihui', 'wanglihui_sjz', 'wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321', 'forevertimes']
+const KEY = [
+    'wanglihui', 'wanglihui_sjz', 'wangpeng',
+    'zelinlee0303', 'zhangdong', 'zd12321',
+    'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121']
 
 let useNum = 0;
 let keyIndex = 0;
