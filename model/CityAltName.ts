@@ -14,7 +14,7 @@ export = function (DB: Sequelize, Types: DataTypes) {
         },
         value:{
             //geoNameId
-            type: Types.STRING(100)
+            type: Types.STRING(255)
         }
     }
     var options = {
