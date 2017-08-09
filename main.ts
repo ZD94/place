@@ -16,12 +16,12 @@ database.init(config.postgres.url);
 import "./model";
 database.DB.sync({force: false});
 
-const server = http.createServer(app);
-const port = config.listen
-server.on('listening', function() {
-    console.log(`server start on ${port}...`);
-})
-
-server.listen(port);
+// const server = http.createServer(app);
+// const port = config.listen
+// server.on('listening', function() {
+//     console.log(`server start on ${port}...`);
+// })
+//
+// server.listen(port);
 
 import './tools/test';
