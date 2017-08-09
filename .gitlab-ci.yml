@@ -1,0 +1,70 @@
+variables:
+  DOCKER_REG: docker.l.jingli365.com
+  DOCKER_NAME: $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME
+  DOCKER_CI_NAME: $DOCKER_REG/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME:$CI_COMMIT_SHA
+  DOCKER_BRANCH_NAME: $DOCKER_REG/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG
+  NPM_CACHE_DIR: /cache/build-cache/npmhash/
+  JL_APP_DAEMON: "true"
+  JL_APP_COMMAND: node main.js >/data/log/nohup.out 2>&1
+  JL_APP_DAEMON_WAIT_INIT: log/nohup.out
+  JL_APP_PORT: "3001"
+  JL_APP_POSTGRES_URL: "postgres://test:test0418@l.jingli365.com:15432/jl-place"
+  JL_APP_APPNAME: "jl-place"
+
+stages:
+  - build
+  - docker
+  - deploy
+
+
+image: docker:git
+
+before_script:
+  - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY">.k && chmod 600 .k && ssh-add .k && rm -f .k'
+  - 'mkdir -p ~/.ssh && echo -e "Host *\n\tStrictHostKeyChecking no\n\tSendEnv JL_APP_*\n\n" > ~/.ssh/config'
+  - mkdir -p /cache/build-cache/.npm && ln -s /cache/build-cache/.npm ~/
+
+build:dist:
+  stage: build
+  only:
+    - branches
+  image: $DOCKER_REG/jl-build:v2
+  tags:
+    - serial
+  cache:
+    key: $CI_PIPELINE_ID
+    paths:
+      - dist/
+  script:
+    - mkdir -p $NPM_CACHE_DIR/`npmhash`/node_modules && ln -s $NPM_CACHE_DIR/`npmhash`/node_modules .
+    - echo `npmhash`
+    - npm --registry https://npm.l.jingli365.com install
+    - npm run dist
+
+build:image:
+  stage: docker
+  cache:
+    key: $CI_PIPELINE_ID
+    paths:
+      - dist/
+  script:
+    - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
+    - docker build -t $DOCKER_CI_NAME .
+    - docker push $DOCKER_CI_NAME
+
+
+deploy:master:
+  stage: deploy
+  only:
+    - /^master$/
+  when: manual
+  environment:
+    name: master
+    url: https://l.jingli365.com
+  script:
+    - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
+    - docker pull $DOCKER_CI_NAME
+    - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
+    - docker push $DOCKER_BRANCH_NAME
+    - echo deploy to https://l.jingli365.com
+    - ssh test@l.jingli365.com /home/test/bin/docker_start.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG

@@ -8,18 +8,36 @@
  * Created by Administrator on 2017/7/20.
  */
 
-import {type} from "os";
 import request = require('request-promise');
 import fs = require('fs');
 import Promise = require('bluebird');
+global.Promise = Promise;
 import fs = require('fs-extra-promise');
 import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
-import {stringify} from "querystring";
-import {Point} from "geojson";
 
-const KEY = 'zd12321';
+const KEY = [
+    'wangpeng',
+    'zelinlee0303', 'zhangdong', 'zd12321',
+    'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121',
+    'wanglihui', 'wanglihui_sjz',
+]
+
+let useNum = 0;
+let keyIndex = 0;
+function getKey() {
+    ++useNum;
+    if (useNum >= 1000) {
+        keyIndex = keyIndex+1;
+        useNum = 0;
+    }
+    if (keyIndex >= KEY.length) {
+        keyIndex = 0;
+    }
+    return KEY[keyIndex];
+}
+
 export interface ICity {
     geoid: string;
     name: string;
@@ -32,7 +50,8 @@ async function getContries() {
         uri: URL,
         json: true,
         qs: {
-            username: KEY
+            username: getKey(),
+            lang: 'zh'
         }
     })
     return data.geonames;
@@ -71,7 +90,7 @@ interface GeoBbox {
 interface AlternateNames {
     name: string;
     lang: string;
-    isPreferredName: boolean;
+    isPreferredName?: boolean;
 }
 interface GeoPlace {
     timezone: GeoPlaceTimezone,
@@ -104,13 +123,13 @@ interface GeoPlace {
     adminName1: string
 }
 
-async function getPlace(geoid: string): GeoPlace {
+async function getPlace(geoid: string): Promise<GeoPlace> {
     return await request<GeoPlace>({
         uri: 'http://api.geonames.org/getJSON',
         json: true,
         qs: {
             geonameId: geoid,
-            username: KEY
+            username: getKey(),
         }
     });
 }
@@ -121,7 +140,7 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
         json: true,
         qs: {
             geonameId: geoid,
-            username: KEY,
+            username: getKey(),
         }
     });
     if (!data.geonames) {
@@ -137,58 +156,64 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
 }
 
 async function savePlace(out: Console, place: GeoPlace, parentId: string) {
+
     //查找中文名称
     let primaryName;
-    for (let altername of place.alternateNames) {
-        if (altername.lang == 'en' || altername.lang == 'zh') {
+    let _alternames = place.alternateNames || []
+    for (let altername of _alternames) {
+        if (!primaryName && altername.lang == 'en') {
+            primaryName = altername.name;
+            continue;
+        }
+
+        if (altername.lang == 'zh') {
             primaryName = altername.name;
             break;
         }
     }
-    console.log(place,'-------------')
     let letter;
     let py;
     if (primaryName) {
         py = pinyin(primaryName, {
             style: pinyin.STYLE_NORMAL
         });
-        letter = pinyin(primaryName, {
-            style: pinyin.STYLE_FIRST_LETTER
-        });
+        py = py.join(' ');
+        letter = getLetter(py)
     } else {
         primaryName = place.asciiName;
-        letter = pinyin(primaryName, {
-            style: pinyin.STYLE_FIRST_LETTER
-        });
-        py = pinyin(primaryName, {
-            style: pinyin.STYLE_NORMAL
-        });
+        py = place.asciiName;
+        letter = getLetter(py);
     }
     let city = await DB.models.City.findById(place.geonameId.toString());
     if (city) {
         return city;
     }
 
+    await DB.models.GeoName.create({
+        id: place.geonameId,
+        data: JSON.stringify(place),
+    });
+
     city = DB.models.City.build({
         id: place.geonameId,
         name: primaryName,
-        letter: letter.join('').toUpperCase(),
-        timezone: place.timezone.timeZoneId,
+        letter: letter.toUpperCase(),
+        timezone: place.timezone ? place.timezone.timeZoneId: '',
         lng:place.lng,
         lat:place.lat,
         parentId: parentId,
-        pinyin: py.join(' '),
+        pinyin: py,
     });
     city = await city.save()
 
     let alternames = place.alternateNames || [];
-    alternames.push( {
+    alternames.push({
         lang: 'geonameid',
-        name: place.geonameId,
+        name: place.geonameId.toString(),
     });
     let ps = place.alternateNames.map( async (altername) => {
         var cityAltname = DB.models.CityAltName.build({
-            city_id: city.id,
+            cityId: city.id,
             lang: altername.lang,
             value: altername.name,
         })
@@ -197,11 +222,15 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
     })
     await Promise.all(ps);
 
-    out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${place.timezone.timeZoneId},${letter.join('').toUpperCase()},${py.join(' ')}`);
+    out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${letter.toUpperCase()},${py}`);
     // await Bluebird.delay(1500);
 }
 
 function getLetter(str) {
+    console.log("str", str)
+    if (!str) {
+        return str;
+    }
     let arr = str.split(/\s/g);
     arr = arr.map((legment) => {
         if (legment && legment.length && /[A-Za-z]/.test(legment[0])) {
@@ -213,20 +242,28 @@ function getLetter(str) {
 }
 
 async function main() {
-    let fsout = await fs.createWriteStream('./data.csv');
-    let out = new console.Console(fsout, fsout);
+    // let fsout = await fs.createWriteStream('./data.csv');
+    // let out = new console.Console(fsout, fsout);
+    let out = console;
     let countries = await getContries();
     for (let country of countries) {
-        if (country.countryName.toLowerCase() != 'china') {
-            continue;
-        }
+        // if (country.geonameId.toString() != '1559582') {
+        //     continue;
+        // }
         let countryId = country.geonameId;
+        let countryPlace = await getPlace(countryId)
+        await savePlace(out, countryPlace, null);
+
         let children = await forEachChild(countryId, async (place: GeoPlace, parentId: string) => {
             console.log("parentId==>", parentId)
-            await savePlace(out, place, parentId);
+            try {
+                await savePlace(out, place, parentId);
+            } catch(err) {
+                out.error(err.stack);
+            }
         });
     }
-    fsout.end();
+    // fsout.end();
 }
 
 main()

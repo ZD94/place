@@ -2,8 +2,8 @@
  * Created by Administrator on 2017/7/18.
  */
 
-import {Sequelize} from "sequelize";
-export = function (DB: Sequelize, Types: Sequelize.Sequelize.DataTypes) {
+import {Sequelize, DataTypes} from "sequelize";
+export = function (DB: Sequelize, Types: DataTypes) {
     var attributes = {
         cityId:{
             type: Types.STRING(50)
@@ -14,7 +14,7 @@ export = function (DB: Sequelize, Types: Sequelize.Sequelize.DataTypes) {
         },
         value:{
             //geoNameId
-            type: Types.STRING(100)
+            type: Types.STRING(255)
         }
     }
     var options = {
