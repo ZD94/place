@@ -246,7 +246,9 @@ async function main() {
     // let out = new console.Console(fsout, fsout);
     let out = console;
     let countries = await getContries();
-    for (let country of countries) {
+
+    for (let i=10; i< countries.length; i++) {
+        let country = countries[i];
         // if (country.geonameId.toString() != '1559582') {
         //     continue;
         // }
