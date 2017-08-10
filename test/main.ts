@@ -5,16 +5,16 @@
 'use strict';
 
 import http = require("http");
-import app from './app';
+import app from '../app';
 import config = require("@jingli/config");
 
 import Logger from "@jingli/logger";
 Logger.init({});
-const logger = new Logger("main");
+const logger = new Logger("mocha");
 
 import database = require("@jingli/database");
 database.init(config.postgres.url);
-import "./model";
+import "../model";
 async function main() {
     await database.DB.sync({force: false})
     const server = http.createServer(app);
@@ -27,6 +27,9 @@ async function main() {
 }
 
 main()
-.catch( (err) => {
-    throw err;
-})
+    .then(run)
+    .catch( (err) => {
+        throw err;
+    })
+
+import './app.test';
