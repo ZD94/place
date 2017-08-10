@@ -35,8 +35,8 @@
     "typescript": "^2.4.1"
   },
   "dependencies": {
-    "@jingli/database": "^1.0.1",
     "@jingli/config": "^1.0.6",
+    "@jingli/database": "^1.0.1",
     "@jingli/logger": "^1.0.1",
     "express": "^4.15.3",
     "pg": "^6.4.1",
