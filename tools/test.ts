@@ -1,12 +1,6 @@
 /**
  * Created by Administrator on 2017/7/31.
  */
-/**
- * Created by Administrator on 2017/7/28.
- */
-/**
- * Created by Administrator on 2017/7/20.
- */
 
 import request = require('request-promise');
 global.Promise = require('bluebird');
@@ -243,7 +237,7 @@ function getLetter(str) {
 }
 
 let from = yargs.argv.from || 0;
-let end = yargs.argv.end || 20;
+let end = yargs.argv.end || from + 20;
 
 async function main() {
     // let fsout = await fs.createWriteStream('./data.csv');
