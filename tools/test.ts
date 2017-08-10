@@ -14,13 +14,16 @@ import fs = require('fs-extra-promise');
 import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
+import yargs = require("yargs");
 
-const KEY = [
-    'wangpeng',
-    'zelinlee0303', 'zhangdong', 'zd12321',
-    'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121',
-    'wanglihui', 'wanglihui_sjz',
+let KEY = [
+    // 'wangpeng',
+    // 'zelinlee0303', 'zhangdong', 'zd12321',
+    // 'forevertimes', 'jack2017', 'mr.he', 'woshilzl', 'zd121',
+    // 'wanglihui', 'wanglihui_sjz',
 ]
+
+KEY = yargs.argv.keys || ['wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
 
 let useNum = 0;
 let keyIndex = 0;
@@ -239,13 +242,19 @@ function getLetter(str) {
     return arr.join('');
 }
 
+let from = yargs.argv.from || 0;
+let end = yargs.argv.end || 20;
+
 async function main() {
     // let fsout = await fs.createWriteStream('./data.csv');
     // let out = new console.Console(fsout, fsout);
     let out = console;
     let countries = await getContries();
+    if (end > countries.length) {
+        end = countries.length;
+    }
     //11-13可能处理不完善
-    for (let i=13; i< countries.length; i++) {
+    for (let i= from; i< end; i++) {
         let country = countries[i];
         // if (country.geonameId.toString() != '1559582') {
         //     continue;
@@ -265,6 +274,7 @@ async function main() {
     }
     // fsout.end();
 }
+
 
 main()
     .then((places) => {
