@@ -9,9 +9,7 @@
  */
 
 import request = require('request-promise');
-import fs = require('fs');
-import Promise = require('bluebird');
-global.Promise = Promise;
+global.Promise = require('bluebird');
 import fs = require('fs-extra-promise');
 import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
