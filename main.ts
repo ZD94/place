@@ -24,4 +24,3 @@ database.DB.sync({force: false});
 //
 // server.listen(port);
 
-// import './tools/test';
