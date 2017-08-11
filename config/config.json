@@ -3,6 +3,20 @@
   "listen": "${JL_APP_PORT}",
   "postgres": {
     "url": "${JL_APP_POSTGRES_URL}"
+  },
+  "logger": {
+    "path": "${{rootDir}}/log",
+    "prefix": "${{appName}}_",
+    "httptype": "short",
+    "mods": {
+      "sequelize": { "prefix": "${{appName}}_sql_", "console": false },
+      "sqlinit": { "prefix": "${{appName}}_sql_", "console": false },
+      "http": {
+        "mods": {
+          "access": { "console": false }
+        }
+      }
+    }
   }
 }
 
