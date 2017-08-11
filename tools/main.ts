@@ -7,7 +7,7 @@ import './test';
 import config = require("@jingli/config");
 
 import Logger from "@jingli/logger";
-Logger.init({});
+Logger.init(config.logger);
 
 const logger = new Logger("tools");
 
