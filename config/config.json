@@ -4,6 +4,7 @@
   "postgres": {
     "url": "${JL_APP_POSTGRES_URL}"
   },
+  "rootDir": "${JL_APP_DATA_DIR}",
   "logger": {
     "path": "${{rootDir}}/log",
     "prefix": "${{appName}}_",
