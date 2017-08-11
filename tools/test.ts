@@ -9,6 +9,8 @@ import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
 import yargs = require("yargs");
+import Logger from "@jingli/logger";
+const logger = new Logger("geoname");
 
 let KEY = [
     // 'wangpeng',
@@ -138,12 +140,11 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
             username: getKey(),
         }
     });
-    if (!data.geonames) {
+    if (!data || !data.geonames) {
         console.error(data)
         return;
     }
     for (let child of data.geonames) {
-        console.log("child.geonameId==>", child.geonameId);
         let place = await getPlace(child.geonameId);
         await callback(place, geoid);
         await forEachChild(child.geonameId, callback);
@@ -151,7 +152,11 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
 }
 
 async function savePlace(out: Console, place: GeoPlace, parentId: string) {
+    if (!place) {
+        return;
+    }
 
+    logger.info(`try save ${place.geonameId}`);
     //查找中文名称
     let primaryName;
     let _alternames = place.alternateNames || []
@@ -222,7 +227,6 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
 }
 
 function getLetter(str) {
-    console.log("str", str)
     if (!str) {
         return str;
     }
@@ -255,16 +259,26 @@ async function main() {
         // }
         let countryId = country.geonameId;
         let countryPlace = await getPlace(countryId)
-        await savePlace(out, countryPlace, null);
+        try {
+            await savePlace(out, countryPlace, null);
+        } catch(err) {
+            logger.error(`Error: ${countryPlace.geonameId}`)
+            logger.error(err.stack ? err.stack : err);
+        }
 
-        let children = await forEachChild(countryId, async (place: GeoPlace, parentId: string) => {
-            console.log("parentId==>", parentId)
-            try {
-                await savePlace(out, place, parentId);
-            } catch(err) {
-                out.error(err.stack);
-            }
-        });
+        try {
+            let children = await forEachChild(countryId, async (place: GeoPlace, parentId: string) => {
+                try {
+                    await savePlace(out, place, parentId);
+                } catch(err) {
+                    logger.error(`Error: ${place.geonameId}`);
+                    logger.error(err.stack);
+                }
+            });
+        } catch(err) {
+            logger.error(`Error: ${countryPlace.geonameId}`);
+            logger.error(err.stack ? err.stack : err);
+        }
     }
     // fsout.end();
 }
@@ -278,3 +292,12 @@ main()
         console.error(err.stack ? err.stack : err);
     })
 
+process.on('uncaughtException', function(err) {
+    logger.error('uncaughtException==>', err);
+    throw err;
+})
+
+process.on('rejectionHandled', function(err) {
+    logger.error('rejectionHandled==>', err);
+    throw err;
+})
