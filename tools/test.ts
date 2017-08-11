@@ -296,11 +296,11 @@ main()
     })
 
 process.on('uncaughtException', function(err) {
-    logger.error('uncaughtException==>', err);
+    console.error('uncaughtException==>', err);
     throw err;
 })
 
 process.on('rejectionHandled', function(err) {
-    logger.error('rejectionHandled==>', err);
+    console.error('rejectionHandled==>', err);
     throw err;
 })
