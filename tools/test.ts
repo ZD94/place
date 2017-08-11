@@ -287,13 +287,13 @@ async function main() {
 }
 
 
-// main()
-//     .then((places) => {
-//         console.log("finish...")
-//     })
-//     .catch((err) => {
-//         console.error(err.stack ? err.stack : err);
-//     })
+main()
+    .then((places) => {
+        console.log("finish...")
+    })
+    .catch((err) => {
+        console.error(err.stack ? err.stack : err);
+    })
 
 process.on('uncaughtException', function(err) {
     logger.error('uncaughtException==>', err);
