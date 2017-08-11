@@ -20,6 +20,9 @@ let KEY = [
 ]
 
 KEY = yargs.argv.keys || ['wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
+if (typeof KEY == 'string') {
+    KEY = (<string>KEY).split(/\s+/g);
+}
 
 let useNum = 0;
 let keyIndex = 0;
@@ -284,13 +287,13 @@ async function main() {
 }
 
 
-main()
-    .then((places) => {
-        console.log("finish...")
-    })
-    .catch((err) => {
-        console.error(err.stack ? err.stack : err);
-    })
+// main()
+//     .then((places) => {
+//         console.log("finish...")
+//     })
+//     .catch((err) => {
+//         console.error(err.stack ? err.stack : err);
+//     })
 
 process.on('uncaughtException', function(err) {
     logger.error('uncaughtException==>', err);
