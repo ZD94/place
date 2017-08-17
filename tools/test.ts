@@ -4,7 +4,7 @@
 
 import request = require('request-promise');
 global.Promise = require('bluebird');
-import fs = require('fs-extra-promise');
+// import fs = require('fs-extra-promise');
 import pinyin = require('pinyin');
 import {DB} from  '@jingli/database';
 import Bluebird = require("bluebird");
@@ -124,27 +124,55 @@ interface GeoPlace {
 }
 
 async function getPlace(geoid: string): Promise<GeoPlace> {
-    return await request<GeoPlace>({
-        uri: 'http://api.geonames.org/getJSON',
-        json: true,
-        qs: {
-            geonameId: geoid,
-            username: getKey(),
+    let times = 3;
+    let result;
+    while(times > 0) {
+        try {
+            result = await request<GeoPlace>({
+                uri: 'http://api.geonames.org/getJSON',
+                json: true,
+                qs: {
+                    geonameId: geoid,
+                    username: getKey(),
+                }
+            });
+            break;
+        } catch(err) {
+            logger.error(err);
+            times = times - 1;
+            if (times <= 0) {
+                throw err;
+            }
         }
-    });
+    }
+    return result;
 }
 
 async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId: string) => Promise<any>) {
-    let data = await request({
-        uri: 'http://api.geonames.org/childrenJSON',
-        json: true,
-        qs: {
-            geonameId: geoid,
-            username: getKey(),
+    let data;
+    let times = 3;
+    while(times > 0) {
+        try {
+            data = await request({
+                uri: 'http://api.geonames.org/childrenJSON',
+                json: true,
+                qs: {
+                    geonameId: geoid,
+                    username: getKey(),
+                }
+            });
+            break;
+        } catch(err) {
+            times = times - 1;
+            logger.error(err);
+            if (times <= 0) {
+                throw err;
+            }
         }
-    });
+    }
+
     if (!data || !data.geonames) {
-        console.error(data)
+        logger.error(data)
         return;
     }
     for (let child of data.geonames) {
@@ -262,26 +290,10 @@ async function main() {
         // }
         let countryId = country.geonameId;
         let countryPlace = await getPlace(countryId)
-        try {
-            await savePlace(out, countryPlace, null);
-        } catch(err) {
-            logger.error(`Error: ${countryPlace.geonameId}`)
-            logger.error(err.stack ? err.stack : err);
-        }
-
-        try {
-            let children = await forEachChild(countryId, async (place: GeoPlace, parentId: string) => {
-                try {
-                    await savePlace(out, place, parentId);
-                } catch(err) {
-                    logger.error(`Error: ${place.geonameId}`);
-                    logger.error(err.stack);
-                }
-            });
-        } catch(err) {
-            logger.error(`Error: ${countryPlace.geonameId}`);
-            logger.error(err.stack ? err.stack : err);
-        }
+        await savePlace(out, countryPlace, null);
+        await forEachChild(countryId, async (place: GeoPlace, parentId: string) => {
+            await savePlace(out, place, parentId);
+        });
     }
     // fsout.end();
 }
