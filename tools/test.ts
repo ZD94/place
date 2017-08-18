@@ -45,6 +45,7 @@ export interface ICity {
     name: string;
 }
 
+const REQ_TIMEOUT = 20 * 1000
 //得到国家信息
 async function getContries() {
     const URL = 'http://api.geonames.org/countryInfoJSON';
@@ -54,7 +55,8 @@ async function getContries() {
         qs: {
             username: getKey(),
             lang: 'zh'
-        }
+        },
+        timeout: REQ_TIMEOUT,
     })
     return data.geonames;
 }
@@ -136,7 +138,9 @@ async function getPlace(geoid: string): Promise<GeoPlace> {
                 qs: {
                     geonameId: geoid,
                     username: getKey(),
-                }
+                },
+                lang: 'zh',
+                timeout: REQ_TIMEOUT,
             });
             break;
         } catch(err) {
@@ -161,7 +165,9 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
                 qs: {
                     geonameId: geoid,
                     username: getKey(),
-                }
+                },
+                lang: 'zh',
+                timeout: REQ_TIMEOUT,
             });
             break;
         } catch(err) {
@@ -185,7 +191,7 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
 }
 
 async function savePlace(out: Console, place: GeoPlace, parentId: string) {
-    if (!place || !place.geonameId) {
+    if (!place || !place.geonameId || !/^\d+$/.test("" + place.geonameId)) {
         logger.error(`not correct place `, place);
         return;
     }
