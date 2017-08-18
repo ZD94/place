@@ -19,7 +19,7 @@ let KEY = [
     // 'wanglihui', 'wanglihui_sjz',
 ]
 
-KEY = yargs.argv.keys || ['geoname3', 'wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
+KEY = yargs.argv.keys || ['wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
 if (typeof KEY == 'string') {
     KEY = (<string>KEY).split(/\s+/g);
 }
@@ -185,7 +185,8 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
 }
 
 async function savePlace(out: Console, place: GeoPlace, parentId: string) {
-    if (!place) {
+    if (!place || !place.geonameId) {
+        logger.error(`not correct place `, place);
         return;
     }
 
