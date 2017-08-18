@@ -20,4 +20,14 @@ database.DB.sync({force: false})
     throw err;
 })
 
+process.on('uncaughtException', function(err) {
+    console.error('uncaughtException==>', err);
+    throw err;
+})
+
+process.on('rejectionHandled', function(err) {
+    console.error('rejectionHandled==>', err);
+    throw err;
+})
+
 import './test';

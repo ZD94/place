@@ -19,7 +19,7 @@ let KEY = [
     // 'wanglihui', 'wanglihui_sjz',
 ]
 
-KEY = yargs.argv.keys || ['wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
+KEY = yargs.argv.keys || ['geoname3', 'wangpeng', 'zelinlee0303', 'zhangdong', 'zd12321'];
 if (typeof KEY == 'string') {
     KEY = (<string>KEY).split(/\s+/g);
 }
@@ -28,14 +28,16 @@ let useNum = 0;
 let keyIndex = 0;
 function getKey() {
     ++useNum;
-    if (useNum >= 1000) {
+    if (useNum >= 500) {
         keyIndex = keyIndex+1;
         useNum = 0;
     }
     if (keyIndex >= KEY.length) {
         keyIndex = 0;
     }
-    return KEY[keyIndex];
+    let key = KEY[keyIndex];
+    logger.info(`User key `, key);
+    return key;
 }
 
 export interface ICity {
@@ -311,12 +313,3 @@ main()
         console.error(err.stack ? err.stack : err);
     })
 
-process.on('uncaughtException', function(err) {
-    console.error('uncaughtException==>', err);
-    throw err;
-})
-
-process.on('rejectionHandled', function(err) {
-    console.error('rejectionHandled==>', err);
-    throw err;
-})
