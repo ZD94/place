@@ -36,7 +36,7 @@ function getKey() {
         keyIndex = 0;
     }
     let key = KEY[keyIndex];
-    logger.info(`User key `, key);
+    console.info(`User key `, key);
     return key;
 }
 
