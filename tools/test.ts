@@ -215,45 +215,49 @@ async function savePlace(out: Console, place: GeoPlace, parentId: string) {
         py = place.asciiName;
         letter = getLetter(py);
     }
-    let city = await DB.models.City.findById(place.geonameId.toString());
-    if (city) {
-        return city;
+
+    let geoCity = await DB.models.GeoName.findById(place.geonameId.toString())
+    if (!geoCity) {
+        await DB.models.GeoName.create({
+            id: place.geonameId,
+            data: JSON.stringify(place),
+        });
+    } else {
+        logger.info(`jump geoname `, place.geonameId);
     }
 
-    await DB.models.GeoName.create({
-        id: place.geonameId,
-        data: JSON.stringify(place),
-    });
-
-    city = DB.models.City.build({
-        id: place.geonameId,
-        name: primaryName,
-        letter: letter.toUpperCase(),
-        timezone: place.timezone ? place.timezone.timeZoneId: '',
-        lng:place.lng,
-        lat:place.lat,
-        parentId: parentId,
-        pinyin: py,
-    });
-    city = await city.save()
-
-    let alternames = place.alternateNames || [];
-    alternames.push({
-        lang: 'geonameid',
-        name: place.geonameId.toString(),
-    });
-    let ps = place.alternateNames.map( async (altername) => {
-        var cityAltname = DB.models.CityAltName.build({
-            cityId: city.id,
-            lang: altername.lang,
-            value: altername.name,
+    let city = await DB.models.City.findById(place.geonameId.toString());
+    if (!city) {
+        city = DB.models.City.build({
+            id: place.geonameId,
+            name: primaryName,
+            letter: letter.toUpperCase(),
+            timezone: place.timezone ? place.timezone.timeZoneId: '',
+            lng:place.lng,
+            lat:place.lat,
+            parentId: parentId,
+            pinyin: py,
+        });
+        city = await city.save()
+        let alternames = place.alternateNames || [];
+        alternames.push({
+            lang: 'geonameid',
+            name: place.geonameId.toString(),
+        });
+        let ps = place.alternateNames.map( async (altername) => {
+            var cityAltname = DB.models.CityAltName.build({
+                cityId: city.id,
+                lang: altername.lang,
+                value: altername.name,
+            })
+            cityAltname = await cityAltname.save()
+            return cityAltname;
         })
-        cityAltname = await cityAltname.save()
-        return cityAltname;
-    })
-    await Promise.all(ps);
-
-    out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${letter.toUpperCase()},${py}`);
+        await Promise.all(ps);
+    } else {
+        logger.info(`jump city `, place.geonameId);
+    }
+    // out.log(`${place.geonameId},${(`${place.lng} ${place.lat}`)}${parentId},${place.name},${place.lng},${place.lat},${letter.toUpperCase()},${py}`);
     // await Bluebird.delay(1500);
 }
 
