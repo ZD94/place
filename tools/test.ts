@@ -173,6 +173,9 @@ async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId:
     }
     for (let child of data.geonames) {
         let place = await getPlace(child.geonameId);
+        if (!place) {
+            continue;
+        }
         await callback(place, geoid);
         await forEachChild(child.geonameId, callback);
     }
@@ -329,10 +332,14 @@ async function myRequest(options) :Promise<any>{
             if (times <= 0) {
                 throw err;
             }
-            if (err.message.toUpperCase().indexOf('TTIMEDOUT')) {
+            if (err.message.toUpperCase().indexOf('TTIMEDOUT') >= 0) {
                 await waiter(far.getNext());
+            }
+            if (err.message.indexOf('StatusCodeError: 404') >= 0) {
+                data = null;
+                break;
             }
         }
     }
-    return request(options)
+    return data;
 }
