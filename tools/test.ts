@@ -335,7 +335,7 @@ async function myRequest(options) :Promise<any>{
             if (err.message.toUpperCase().indexOf('TTIMEDOUT') >= 0) {
                 await waiter(far.getNext());
             }
-            if (err.message.indexOf('StatusCodeError: 404') >= 0) {
+            if (err.message.indexOf('404') >= 0) {
                 data = null;
                 break;
             }
