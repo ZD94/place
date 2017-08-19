@@ -49,7 +49,7 @@ const REQ_TIMEOUT = 20 * 1000
 //得到国家信息
 async function getContries() {
     const URL = 'http://api.geonames.org/countryInfoJSON';
-    let data = await request({
+    let data = await myRequest({
         uri: URL,
         json: true,
         qs: {
@@ -59,6 +59,20 @@ async function getContries() {
         timeout: REQ_TIMEOUT,
     })
     return data.geonames;
+}
+
+
+export class Far {
+    constructor(public first: number, public second: number) {
+    }
+
+    getNext() {
+        let next = this.first + this.second;
+        logger.info(`wait time ${next}`);
+        this.first = this.second;
+        this.second = next;
+        return next;
+    }
 }
 
 interface GeoChildren {
@@ -128,56 +142,30 @@ interface GeoPlace {
 }
 
 async function getPlace(geoid: string): Promise<GeoPlace> {
-    let times = 3;
-    let result;
-    while(times > 0) {
-        try {
-            result = await request<GeoPlace>({
-                uri: 'http://api.geonames.org/getJSON',
-                json: true,
-                qs: {
-                    geonameId: geoid,
-                    username: getKey(),
-                },
-                lang: 'zh',
-                timeout: REQ_TIMEOUT,
-            });
-            break;
-        } catch(err) {
-            logger.error(err);
-            times = times - 1;
-            if (times <= 0) {
-                throw err;
-            }
-        }
-    }
-    return result;
+    let data = await myRequest({
+            uri: 'http://api.geonames.org/getJSON',
+            json: true,
+            qs: {
+                geonameId: geoid,
+                username: getKey(),
+            },
+            lang: 'zh',
+            timeout: REQ_TIMEOUT,
+        });
+    return data as GeoPlace;
 }
 
 async function forEachChild(geoid: string, callback: (place: GeoPlace, parentId: string) => Promise<any>) {
-    let data;
-    let times = 3;
-    while(times > 0) {
-        try {
-            data = await request({
-                uri: 'http://api.geonames.org/childrenJSON',
-                json: true,
-                qs: {
-                    geonameId: geoid,
-                    username: getKey(),
-                },
-                lang: 'zh',
-                timeout: REQ_TIMEOUT,
-            });
-            break;
-        } catch(err) {
-            times = times - 1;
-            logger.error(err);
-            if (times <= 0) {
-                throw err;
-            }
-        }
-    }
+    let data = await myRequest({
+        uri: 'http://api.geonames.org/childrenJSON',
+        json: true,
+        qs: {
+            geonameId: geoid,
+            username: getKey(),
+        },
+        lang: 'zh',
+        timeout: REQ_TIMEOUT,
+    });
 
     if (!data || !data.geonames) {
         logger.error(data)
@@ -320,3 +308,31 @@ main()
         console.error(err.stack ? err.stack : err);
     })
 
+
+async function waiter(second: number) {
+    return new Promise( (resolve) => {
+        setTimeout(resolve, second * 1000);
+    })
+}
+
+async function myRequest(options) :Promise<any>{
+    let times = 10;
+    let data;
+    let far = new Far(0, 1);
+    while(times > 0) {
+        try {
+            data = await request(options);
+            break;
+        } catch(err) {
+            times = times - 1;
+            logger.error(err);
+            if (times <= 0) {
+                throw err;
+            }
+            if (err.message.toUpperCase().indexOf('TTIMEDOUT')) {
+                await waiter(far.getNext());
+            }
+        }
+    }
+    return request(options)
+}
