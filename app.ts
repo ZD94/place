@@ -6,7 +6,6 @@
 
 //导入express模块
 import express = require("express");
-import {type} from "os";
 const app = express();
 import {DB} from '@jingli/database';
 import _ = require("lodash")
@@ -20,6 +19,9 @@ app.get("/city/:id", async (req, res, next) => {
             lang = 'zh';
         }
         let city = await DB.models['City'].findById(id);
+        if (!city) {
+            return res.json(null);
+        }
         let ret = city.toJSON();
         let alternateNames = await DB.models['CityAltName'].findAll({where: {cityId: id}});
         let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
@@ -37,18 +39,8 @@ app.get("/city/:id", async (req, res, next) => {
 app.get("/city/:id/children", async (req, res, next) => {
     try {
         let {id} = req.params;
-        let city = await DB.models['City'].findAll();
-        let result = [];
-        city.map((cities) => {
-            if (cities.parentId == id) {
-                result.push(cities)
-            }
-        });
-        if (result.length > 0) {
-            res.json(result)
-        } else {
-            res.send('该城市没有下一级')
-        }
+        let cities = await DB.models['City'].findAll({where: {"parentId": id}});
+        res.json(cities);
     } catch (err) {
         next(err);
     }
@@ -66,15 +58,15 @@ app.get('/city/:id/parent', async (req, res, next) => {
         let parentCity = await DB.models['City'].findById(city.parentId);
         if (parentCity) {
             let ret = parentCity.toJSON();
-            let alternateNames = await DB.models['CityAltName'].find({where: {cityId: id}});
-            let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
+            let alternateNames = await DB.models['CityAltName'].find({where: {cityId: city.parentId}});
+            let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: city.parentId, lang: lang}});
             if (alternateName) {
                 ret.name = alternateName.value;
             }
             ret.alternateNames = alternateNames;
             res.json(ret)
         } else {
-            res.send('该城市没有上一级')
+            return res.json(null)
         }
     } catch (err) {
         next(err)
@@ -82,11 +74,10 @@ app.get('/city/:id/parent', async (req, res, next) => {
 });
 
 //城市全部别名
-app.get('/city/:id/altername', async (req, res, next) => {
+app.get('/city/:id/alternate', async (req, res, next) => {
     try {
         let {id} = req.params;
         let alternateName = await DB.models['CityAltName'].findAll({where: {cityId: id}});
-        // let alterName =alternateName.value
         let alterName = [];
         alternateName.map((alternateName) => {
             alterName.push(alternateName.value)
@@ -98,12 +89,12 @@ app.get('/city/:id/altername', async (req, res, next) => {
 });
 
 //城市别名
-app.get('/city/:id/altername/:lang', async (req, res, next) => {
+app.get('/city/:id/alternate/:lang', async (req, res, next) => {
     try {
         let {id} = req.params;
         let {lang} = req.params;
-        let alternateName = await DB.models['CityAltName'].find({where: {cityId: id, lang: lang}});
-        res.json(alternateName.value)
+        let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
+        res.json(alternateName);
     } catch (err) {
         next(err)
     }
