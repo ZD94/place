@@ -36,14 +36,15 @@
     "@jingli/config": "^1.0.6",
     "@jingli/database": "^1.0.1",
     "@jingli/logger": "^1.0.1",
-    "express": "^4.15.3",
-    "request-promise": "^4.2.1",
-    "fs-extra-promise": "^1.0.1",
+    "@jingli/restful": "0.0.5",
     "bluebird": "^3.5.0",
+    "express": "^4.15.3",
+    "fs-extra-promise": "^1.0.1",
     "pg": "^6.4.1",
     "pg-hstore": "^2.3.2",
     "pinyin": "^2.8.3",
     "request": "^2.81.0",
+    "request-promise": "^4.2.1",
     "sequelize": "^3.30.4",
     "yargs": "^8.0.2"
   }

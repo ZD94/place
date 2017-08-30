@@ -24,6 +24,9 @@ export = function (DB: Sequelize, Types: DataTypes) {
         lat: {
             type: Types.REAL
         },
+        location: {
+            type: "geography(POINT,4326)",
+        },
         parentId: {
             type: Types.STRING(50),
         },
