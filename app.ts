@@ -21,7 +21,7 @@ app.get("/city/:id", async (req, res, next) => {
         }
         let city = await DB.models['City'].findById(id);
         let ret = city.toJSON();
-        let alternateNames = await DB.models['CityAltName'].find({where: {cityId: id}});
+        let alternateNames = await DB.models['CityAltName'].findAll({where: {cityId: id}});
         let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
         if (alternateName) {
             ret.name = alternateName.value;
