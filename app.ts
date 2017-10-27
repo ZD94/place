@@ -11,9 +11,12 @@ import {scannerControllers, registerControllerToRouter} from '@jingli/restful';
 
 // import {DB} from '@jingli/database';
 // import _ = require("lodash")
+const router = express.Router();
 
 scannerControllers(path.join(__dirname, 'controller'));
-registerControllerToRouter(app);
+registerControllerToRouter(router);
+
+app.use('/api/v1', router);
 
 // //城市信息
 // app.get("/city/:id", async (req, res, next) => {
