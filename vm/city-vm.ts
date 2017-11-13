@@ -10,7 +10,7 @@ export class CityVM {
     constructor(public city) {
     }
 
-    toJSON() {
+    toJSON() :any {
         return {
             id: this.city.id,
             name: this.city.name,
