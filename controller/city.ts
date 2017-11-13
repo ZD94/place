@@ -32,6 +32,13 @@ export class CityController extends AbstractController {
         return /^\d+$/.test(id) || /^CT_\d+$/.test(id) || /^CTW_\d+$/.test(id);
     }
 
+    $before(req, res, next) {
+        if (!req.query.lang) {
+            req.query.lang = 'zh';
+        }
+        return next();
+    }
+
     async get(req, res, next) {
         let {id} = req.params;
         let {lang, cityCode} = req.query;
@@ -64,7 +71,7 @@ export class CityController extends AbstractController {
     }
 
     async find(req, res, next) {
-        let {p, pz, order, where} = req.query;
+        let {p, pz, order, where, lang} = req.query;
         p = p || 1;
         pz = pz || 20;
         let params = req.query;
@@ -241,11 +248,12 @@ export class CityController extends AbstractController {
 
     @Router('/:id/children')
     async children(req, res, next) {
-        let {id} = req.params;
+        let {id, lang} = req.params;
         let cities = await DB.models['City'].findAll({where: {"parentId": id}});
-        cities = cities.map( (city) => {
+        cities = await Promise.all(cities.map( async (city) => {
+            city = await this.useAlternateName(city, lang);
             return new CityVM(city);
-        })
+        }))
         res.json(this.reply(0, cities));
     }
 
