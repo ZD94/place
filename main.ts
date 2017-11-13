@@ -20,6 +20,7 @@ async function main() {
     const server = http.createServer(app);
     server.on('listening', function() {
         logger.log(`server start on ${port}...`);
+        logger.log(`SERVER INITIALIZED`);
     })
     const port = config.listen;
     server.listen(port);
