@@ -24,3 +24,15 @@ export class CityVM {
         }
     }
 }
+
+export class CityWithDistance extends CityVM {
+    constructor(public city) {
+        super(city);
+    }
+
+    toJSON() {
+        let obj = super.toJSON();
+        obj.distance = this.city.toJSON().distance;
+        return obj;
+    }
+}

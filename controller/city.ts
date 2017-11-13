@@ -8,7 +8,7 @@ import {Router, Restful, AbstractController} from '@jingli/restful';
 import {DB} from "@jingli/database";
 import sequelize = require("sequelize");
 import City = require("../model/City");
-import {CityVM} from "../vm/city-vm";
+import {CityVM, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 
 let cityCols = [
@@ -58,10 +58,7 @@ export class CityController extends AbstractController {
             return res.json(this.reply(404, null));
         }
 
-        let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
-        if (alternateName) {
-            city.name = alternateName.value;
-        }
+        city = await this.useAlternateName(city, lang);
         let cityVm = new CityVM(city);
         res.json(this.reply(0, cityVm));
     }
@@ -86,9 +83,10 @@ export class CityController extends AbstractController {
         if (!order || typeof order == undefined)
             query["order"] = [["created_at", "desc"]];
         let cities = await DB.models['City'].findAll(query);
-        cities = cities.map( (city) => {
+        cities = await Promise.all(cities.map( async (city) => {
+            city = await this.useAlternateName(city, lang);
             return new CityVM(city);
-        })
+        }))
         res.json(this.reply(0, cities));
     }
 
@@ -195,27 +193,49 @@ export class CityController extends AbstractController {
             limit: pz,
             offset: (p - 1) * pz,
         });
-        cities = cities.map( (city) => {
+        cities = await Promise.all(cities.map( async (city) => {
+            city = this.useAlternateName(city, lang);
             return new CityVM(city);
-        })
+        }));
         res.json(this.reply(0, cities));
     }
 
     @Router('/nearby/:location')
     async nearBy(req, res, next) {
         let {location} = req.params;
-        //ST_Distance('LINESTRING(-122.33 47.606, 0.0 51.5)'::geography, 'POINT(-21.96 64.15)':: geography);
+        let {distance, lang} = req.query;
+        if (!distance || typeof distance == 'undefined' || !/^\d+$/.test(distance)) {
+            distance = 10;
+        }
+
         let point = location.split(/,/)
+        let fnStr = `city."getBoundsFromLatLng"(${point[1]}, ${point[0]}, ${distance})`;
+        let sql = `SELECT ST_XMin(${fnStr}) as lat_min, ST_XMax(${fnStr}) as lat_max, ST_YMin(${fnStr}) as lng_min, ST_YMax(${fnStr}) as lng_max`;
+        let result = await DB.query(sql);
+        result = result[0][0];
+
+        //ST_Distance('LINESTRING(-122.33 47.606, 0.0 51.5)'::geography, 'POINT(-21.96 64.15)':: geography);
         let fn = <any>sequelize.fn('ST_Distance', sequelize.col('location'), `POINT(${point[0]} ${point[1]}):: geography`);
         let orderItem = [fn, 'asc'];
         let cities = await DB.models['City'].findAll({
             attributes: {include: [[fn, 'distance']]},
+            where: {
+                lat: {
+                    $gte: result["lat_min"],
+                    $lte: result["lat_max"]
+                },
+                lng: {
+                    $gte: result["lng_min"],
+                    $lte: result["lng_max"]
+                }
+            },
             limit: 10,
             order: [orderItem],
         });
-        cities = cities.map( (city) => {
-            return new CityVM(city);
-        })
+        cities = await Promise.all(cities.map( async (city) => {
+            city = await this.useAlternateName(city, lang);
+            return new CityWithDistance(city);
+        }));
         res.send(this.reply(0, cities));
     }
 
@@ -260,5 +280,16 @@ export class CityController extends AbstractController {
         let alternateName = await DB.models['CityAltName'].findOne({where: {cityId: id, lang: lang}});
         alternateName = new AlternameVm(alternateName);
         res.json(this.reply(0, alternateName));
+    }
+
+    async useAlternateName(city, lang) {
+        if (!lang) {
+            lang = 'zh';
+        }
+        let alternateName = await DB.models['CityAlternateName'].findOne({where: {cityId: city.id, lang: lang}});
+        if (alternateName && alternateName.value) {
+            city.name = alternateName.value;
+        }
+        return city;
     }
 }
