@@ -30,7 +30,7 @@
     "mocha": "^3.5.0",
     "ts-node": "^3.2.0",
     "tslib": "^1.7.1",
-    "typescript": "^2.5.3"
+    "typescript": "2.5.3"
   },
   "dependencies": {
     "@jingli/config": "^1.0.6",
