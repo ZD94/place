@@ -1,0 +1,11 @@
+{
+  "apps": [
+    {
+      "script": "./main.js",
+      "instances": "max",
+      "exec_mode": "cluster",
+      "out_file": "/data/log/nohup.out",
+      "error_file": "/data/log/nohup.out"
+    }
+  ]
+}
