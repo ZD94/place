@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "dist": "tsc && mkdir -p dist/config && cp -Rf config/config.json dist/config/config.json && cp package.json dist/"
+    "dist": "tsc && mkdir -p dist/config && cp -Rf config/config.json dist/config/config.json && cp package* dist/"
   },
   "repository": {
     "type": "git",
