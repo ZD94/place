@@ -11,7 +11,7 @@ import config = require("@jingli/config");
 serverInit({
     name: config.appName,
     entryPath: path.join(__dirname, './server'),
-    // workerNumbers: 0,
+    workerNumbers: 0,
 })
 
 function checkPort() {
