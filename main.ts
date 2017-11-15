@@ -9,6 +9,9 @@ import {serverInit, serverStart} from "@jingli/server";
 import config = require("@jingli/config");
 import fs = require("fs");
 
+import Logger from "@jingli/logger";
+Logger.init(config.logger);
+
 serverInit({
     name: config.appName,
     entryPath: path.join(__dirname, './server'),

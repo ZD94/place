@@ -9,7 +9,6 @@ import app from './app';
 import config = require("@jingli/config");
 
 import Logger from "@jingli/logger";
-Logger.init(config.logger);
 const logger = new Logger("main");
 
 import database = require("@jingli/database");
