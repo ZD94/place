@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "dist": "tsc && mkdir -p dist/config && cp -Rf config/config.json dist/config/config.json && cp package* dist/ && cp pm2.json dist/"
+    "dist": "rm -rf dist/ && tsc && mkdir -p dist/config && cp -Rf config/config.json dist/config/config.json && cp package* dist/"
   },
   "repository": {
     "type": "git",
@@ -37,13 +37,13 @@
     "@jingli/database": "^1.0.1",
     "@jingli/logger": "^1.0.1",
     "@jingli/restful": "0.0.5",
+    "@jingli/server": "0.0.2",
     "bluebird": "^3.5.0",
     "express": "^4.15.3",
     "fs-extra-promise": "^1.0.1",
     "pg": "^6.4.1",
     "pg-hstore": "^2.3.2",
     "pinyin": "^2.8.3",
-    "pm2": "^2.7.2",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "sequelize": "^3.30.4",

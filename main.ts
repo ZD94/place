@@ -2,33 +2,27 @@
  * Created by wlh on 2017/7/18.
  */
 
-'use strict';
 
-import http = require("http");
-import app from './app';
+'use strict';
+import path = require("path");
+import {serverInit, serverStart} from "@jingli/server";
 import config = require("@jingli/config");
 
-import Logger from "@jingli/logger";
-Logger.init(config.logger);
-const logger = new Logger("main");
+serverInit({
+    name: config.appName,
+    entryPath: path.join(__dirname, './server'),
+    // workerNumbers: 0,
+})
 
-import database = require("@jingli/database");
-database.init(config.postgres.url);
-import "./model";
-async function main() {
-    await database.DB.sync({force: false})
-    const server = http.createServer(app);
-    server.on('listening', function() {
-        logger.log(`server start on ${port}...`);
-        logger.log('SERVER INITIALIZED...');
-        console.log(`SERVER INITIALIZED...`)
-    })
-    const port = config.listen;
-    server.listen(port);
-    return server;
+function checkPort() {
+    let port = config.listen
+    console.log(port)
+    if (typeof  port == 'string' && !/^\d+$/.test(port)) {
+        console.log("PORT===>", port)
+        if (fs.existsSync(port)) {
+            fs.unlinkSync(port);
+        }
+    }
 }
 
-main()
-.catch( (err) => {
-    throw err;
-})
+serverStart(checkPort);
