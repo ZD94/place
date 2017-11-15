@@ -16,9 +16,7 @@ serverInit({
 
 function checkPort() {
     let port = config.listen
-    console.log(port)
     if (typeof  port == 'string' && !/^\d+$/.test(port)) {
-        console.log("PORT===>", port)
         if (fs.existsSync(port)) {
             fs.unlinkSync(port);
         }
