@@ -7,6 +7,7 @@
 import path = require("path");
 import {serverInit, serverStart} from "@jingli/server";
 import config = require("@jingli/config");
+import fs = require("fs");
 
 serverInit({
     name: config.appName,
