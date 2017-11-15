@@ -37,7 +37,7 @@
     "@jingli/database": "^1.0.1",
     "@jingli/logger": "^1.0.1",
     "@jingli/restful": "0.0.5",
-    "@jingli/server": "0.0.2",
+    "@jingli/server": "0.0.3",
     "bluebird": "^3.5.0",
     "express": "^4.15.3",
     "fs-extra-promise": "^1.0.1",

@@ -3,7 +3,7 @@
  */
 
 'use strict';
-
+import fs = require("fs");
 import http = require("http");
 import app from './app';
 import config = require("@jingli/config");
@@ -20,8 +20,9 @@ async function main() {
     const server = http.createServer(app);
     server.on('listening', function() {
         logger.log(`server start on ${port}...`);
-        // logger.log('SERVER INITIALIZED...');
-        // console.log(`SERVER INITIALIZED...`)
+        if (!/^\d+$/.test(port)) {
+            fs.chmodSync(port, '777');
+        }
     })
     const port = config.listen;
     server.listen(port);

@@ -13,6 +13,7 @@ serverInit({
     name: config.appName,
     entryPath: path.join(__dirname, './server'),
     workerNumbers: 0,
+    cluster: config.cluster,
 })
 
 function checkPort() {
