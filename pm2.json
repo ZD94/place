@@ -5,7 +5,7 @@
       "name": "place",
       "instances": "max",
       "exec_mode": "cluster",
-      "out_file": "/data/log/out.log",
+      "out_file": "/data/log/nohup.out",
       "error_file": "/data/log/err.log",
       "merge_logs": true
     }
