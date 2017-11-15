@@ -201,7 +201,7 @@ export class CityController extends AbstractController {
             offset: (p - 1) * pz,
         });
         cities = await Promise.all(cities.map( async (city) => {
-            city = this.useAlternateName(city, lang);
+            city = await this.useAlternateName(city, lang);
             return new CityVM(city);
         }));
         res.json(this.reply(0, cities));
