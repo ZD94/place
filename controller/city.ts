@@ -48,10 +48,10 @@ export class CityController extends AbstractController {
         let city = await DB.models['City'].findById(id);
 
         //兼容之前city接口
-        if (!city && cityCode) {
+        if (!city) {
             let options = {
                 where: {
-                    value: cityCode,
+                    value: id,
                     lang: "jlcityid"
                 }
             }
