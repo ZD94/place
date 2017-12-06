@@ -265,12 +265,12 @@ export class CityController extends AbstractController {
     @Router('/getAirpOrRstn')
     async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
         const reg = /^[a-zA-Z]{3}/
-        const { lang, code }: { lang: string, code: string } = req.query
-        const valid: boolean = reg.test(lang) && reg.test(code)
+        const { type, code }: { type: string, code: string } = req.query
+        const valid: boolean = reg.test(type) && reg.test(code)
         if (!valid) return res.json(this.reply(400, null))
 
         const alternate: ICityAlternate = await DB.models['CityAltName'].findOne({
-            where: { lang: lang.toUpperCase(), value: code.toUpperCase() }
+            where: { lang: type.toUpperCase(), value: code.toUpperCase() }
         })
         if (!alternate) return res.json(this.reply(404, null))
 
