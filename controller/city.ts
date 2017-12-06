@@ -10,6 +10,7 @@ import sequelize = require("sequelize");
 import City = require("../model/City");
 import { CityVM, CityWithDistance } from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
+import { Request, Response, NextFunction } from 'express-serve-static-core';
 
 let cityCols = [
     "id",
@@ -118,89 +119,6 @@ export class CityController extends AbstractController {
         }))
         res.json(this.reply(0, cities));
     }
-
-    // @Router('/getAll')
-    // async findAll(req, res, next) {
-    //     console.info("findAllCities============");
-    //     let { type, isAbroad} = req.query;
-    //     let where: any = {};
-    //     if(type){
-    //         where.type = type;
-    //     }
-    //     if (isAbroad !== null && isAbroad !== undefined) {
-    //         where.isAbroad = Boolean(isAbroad);
-    //     }else{
-    //         where.isAbroad = false;
-    //     }
-    //     let all_cities = await DB.models['City'].findAll({
-    //         where: where,
-    //         order: [["cityLevel", "desc"],["letter", "asc"]]});
-    //     all_cities = transform(all_cities);
-    //     res.json(this.reply(0, all_cities));
-    // }
-
-    // @Router('/groupByLetter')
-    // async queryCitiesGroupByLetter(req, res, next) {
-    //     let result;
-    //     let {isAbroad} = req.query;
-    //     let where = `where type = 2 `
-    //     let where2 = `where substring(letter, 1, 1) = ? and type = 2 `
-    //
-    //     if (isAbroad !== null && isAbroad !== undefined) {
-    //         isAbroad = Boolean(isAbroad);
-    //     } else {
-    //         isAbroad = false;
-    //     }
-    //     where += ` AND "isAbroad"= ${isAbroad} `;
-    //     where2 += ` AND "isAbroad" = ${isAbroad}`;
-    //     var sql = ` select substring(letter, 1, 1) as first_letter,count(1)
-    //                 from public.cities
-    //                 ${where}
-    //                 group by substring(letter, 1, 1)
-    //                 order by substring(letter, 1, 1)`;
-    //
-    //     let rows = await DB.query(sql);
-    //     if (rows && rows[0]) {
-    //         var letters = rows[0].map(async function (row) {
-    //             //查找城市信息
-    //             var sql2 = `select id, name, "isAbroad", pinyin, letter, lat, lng, type, "cityLevel", "parentId" , location
-    //         from public.cities ${where2}`;
-    //             let cities = await DB.query(sql2, {replacements: [row.first_letter]});
-    //             row.first_letter = row.first_letter || '#';
-    //             row.cities = cities;
-    //             return row;
-    //         })
-    //         result = await Promise.all(letters);
-    //     }
-    //
-    //     res.json(this.reply(0, result));
-    // }
-
-    // @Router('/getByLetter')
-    // async getCitiesByLetter(req, res, next) {
-    //     let {isAbroad = false, letter = 'A', limit = 20, page = 0, type} = req.query;
-    //     let offset = page * limit;
-    //
-    //     let typestring = 2;
-    //     if (typeof(type) == 'string') {
-    //         type = JSON.parse(type);
-    //         typestring = type.join(",");
-    //     }
-    //
-    //     let sql = `select id, name, "isAbroad", pinyin, letter, lat, lng, type, "cityLevel", "parentId" , location
-    //     from public.cities where "isAbroad" is ${isAbroad} and substring(letter,1,1) = '${letter}' and type in (${typestring}) limit ${limit} offset ${offset}`;
-    //     let sql2 = `select count(*) from public.cities where "isAbroad" is ${isAbroad} and substring(letter,1,1) = '${letter}' and type in (${typestring})`;
-    //     let count = await DB.query(sql2).spread((result) => {
-    //         return result;
-    //     })
-    //     let returnResult = await DB.query(sql).spread((result) => {
-    //         return {
-    //             total: Number(count[0].count),
-    //             cities: result
-    //         };
-    //     });
-    //     res.json(this.reply(0, returnResult));
-    // }
 
     @Router('/search')
     async keyword(req, res, next) {
@@ -321,5 +239,21 @@ export class CityController extends AbstractController {
             city.name = alternateName.value;
         }
         return city;
+    }
+
+    @Router('/getAirpOrRstn')
+    async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
+        const reg = /^[a-zA-Z]{3}/
+        const { lang, code } = req.query
+        const valid = reg.test(lang) && reg.test(code)
+        if (!valid) return res.json(this.reply(400, null))
+
+        const alternate = await DB.models['CityAltName'].findOne({
+            where: { lang: lang.toUpperCase(), value: code.toUpperCase() }
+        })
+        if (!alternate) return res.json(this.reply(404, null))
+
+        const city = await DB.models['City'].findById(alternate.cityId)
+        return res.json(this.reply(0, new CityVM(city)))
     }
 }
