@@ -7,13 +7,15 @@
 import path = require("path");
 import express = require("express");
 const app = express();
-import {scannerControllers, registerControllerToRouter} from '@jingli/restful';
+import {registerControllerToRouter, scannerDecoration} from '@jingli/restful';
 
 // import {DB} from '@jingli/database';
 // import _ = require("lodash")
 
-scannerControllers(path.join(__dirname, 'controller'));
-registerControllerToRouter(app);
+scannerDecoration(path.join(__dirname, 'controller'));
+registerControllerToRouter(app, {
+    isShowUrls: true,
+});
 
 // //城市信息
 // app.get("/city/:id", async (req, res, next) => {
