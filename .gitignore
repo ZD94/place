@@ -4,3 +4,4 @@ dist/
 npm-debug.log
 config.local.json
 log/
+package-lock.json
