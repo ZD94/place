@@ -33,14 +33,11 @@ export = function (DB: Sequelize, Types: DataTypes) {
         pinyin: {
             type: Types.STRING(50),
         },
-        type: {
-            type: Types.INTEGER
+        fcode: {
+            type: Types.STRING(50)
         },
-        cityLevel: {
-            type: Types.INTEGER
-        },
-        isAbroad: {
-            type: Types.BOOLEAN
+        country_code: {
+            type: Types.STRING(50)
         }
     }
     var options = {
