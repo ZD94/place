@@ -26,6 +26,27 @@ let cityCols = [
     // "cityLevel",
 ];
 
+interface ICity {
+    id: string,
+    name: string,
+    letter: string,
+    timezone: string,
+    lng: number,
+    lat: number,
+    location: object,
+    parentId: string,
+    pinyin: string,
+    fcode: string,
+    country_code: string
+}
+
+interface ICityAlternate {
+    id: number,
+    cityId: string,
+    lang: string,
+    value: string
+}
+
 @Restful()
 export class CityController extends AbstractController {
 
@@ -130,7 +151,7 @@ export class CityController extends AbstractController {
             p = 1;
         }
         let alternates = await DB.models['CityAltName'].findAll({ where: { value: keyword } });
-        let cityIds = alternates.map((alternate) => {
+        let cityIds: number[] = alternates.map((alternate) => {
             return alternate.cityId;
         })
         let cities = await DB.models['City'].findAll({
@@ -244,16 +265,16 @@ export class CityController extends AbstractController {
     @Router('/getAirpOrRstn')
     async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
         const reg = /^[a-zA-Z]{3}/
-        const { lang, code } = req.query
-        const valid = reg.test(lang) && reg.test(code)
+        const { lang, code }: { lang: string, code: string } = req.query
+        const valid: boolean = reg.test(lang) && reg.test(code)
         if (!valid) return res.json(this.reply(400, null))
 
-        const alternate = await DB.models['CityAltName'].findOne({
+        const alternate: ICityAlternate = await DB.models['CityAltName'].findOne({
             where: { lang: lang.toUpperCase(), value: code.toUpperCase() }
         })
         if (!alternate) return res.json(this.reply(404, null))
 
-        const city = await DB.models['City'].findById(alternate.cityId)
+        const city: ICity = await DB.models['City'].findById(alternate.cityId)
         return res.json(this.reply(0, new CityVM(city)))
     }
 }
