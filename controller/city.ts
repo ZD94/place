@@ -94,7 +94,11 @@ export class CityController extends AbstractController {
 
     @Router('/getCitiesByLetter')
     async getCityByLetter(req, res, next) {
-        const { letter = 'A', country_code = 'CN', lang='zh'} = req.query;
+        const { letter = 'A', lang = 'zh' } = req.query;
+        let country_code = req.query.country_code;
+        if (!country_code) { 
+            country_code = 'CN'
+        }
         let sql = '';
         if (country_code == 'CN') {
             sql = `
@@ -104,7 +108,7 @@ export class CityController extends AbstractController {
             `
         }
 
-        if (country_code == '!CN') {
+        if (country_code === '!CN') {
             sql = `
                 SELECT id, name, substring(letter,1,1) as first_letter 
                 FROM cities 
