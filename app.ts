@@ -12,6 +12,13 @@ import {registerControllerToRouter, scannerDecoration} from '@jingli/restful';
 // import {DB} from '@jingli/database';
 // import _ = require("lodash")
 
+app.use('/manager', function (req, res, next) { 
+    res.header('Access-Control-Allow-Origin', '*');
+    if (req.query.key !== 'test1512967479893') { 
+        return res.send(404);
+    }
+    next();
+})
 scannerDecoration(path.join(__dirname, 'controller'));
 registerControllerToRouter(app, {
     isShowUrls: true,
