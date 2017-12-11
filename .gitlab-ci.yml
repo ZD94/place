@@ -27,7 +27,7 @@ build:dist:
   stage: build
   only:
     - branches
-  image: $DOCKER_REG/jl-build:v2
+  image: $DOCKER_REG/jl-build:v3
   tags:
     - serial
   cache:
