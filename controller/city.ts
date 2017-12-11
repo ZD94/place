@@ -8,7 +8,7 @@ import { Router, Restful, AbstractController } from '@jingli/restful';
 import { DB } from "@jingli/database";
 import sequelize = require("sequelize");
 import City = require("../model/City");
-import { CityVM, CityWithDistance } from "../vm/city-vm";
+import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 
@@ -92,13 +92,44 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cityVm));
     }
 
-    @Router('/getCitiesByLetter', 'GET')
+    @Router('/getCitiesByLetter')
     async getCityByLetter(req, res, next) {
-        const { letter = 'A', limit = 20, page = 0, isAbroad = false } = req.query
-        const cities = await DB.query(`select * from city.cities_cn where "isAbroad" = ${isAbroad} and 
-            substring(letter,1,1) = '${letter}' offset ${page * limit} limit ${limit}`)
-        const result = cities[0].map(c => new CityVM(c))
-        res.json(this.reply(0, result))
+        const { letter = 'A', country_code = 'CN', lang='zh'} = req.query;
+        let sql = '';
+        if (country_code == 'CN') {
+            sql = `
+                SELECT id, name, substring(letter,1,1) as first_letter 
+                FROM cities 
+                WHERE country_code = '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'ADM2' OR fcode = 'PPLC' OR fcode = 'PPLA')
+            `
+        }
+
+        if (country_code == '!CN') {
+            sql = `
+                SELECT id, name, substring(letter,1,1) as first_letter 
+                FROM cities 
+                WHERE country_code != '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'PPLC' OR fcode = 'PPLA'  OR fcode = 'PPLA2')
+            `
+        }
+
+        if (country_code !== 'CN' && country_code !== '!CN') {
+            sql = `
+                SELECT id, name, substring(letter,1,1) as first_letter 
+                FROM cities 
+                WHERE country_code = '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'PPLC' OR fcode = 'PPLA'  OR fcode = 'PPLA2')
+            `
+        }
+
+        let result = await DB.query(sql);
+        let cities = result[0];
+
+        cities = await Promise.all(cities.map( (city) => {
+            return this.useAlternateName(city, lang)
+        }));
+        cities = cities.map( (city) => {
+            return new CityVmSimple(city);
+        })
+        res.json(this.reply(0, cities));
     }
 
     @Router('/getCityByName', 'GET')

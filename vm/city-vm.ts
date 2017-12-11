@@ -5,6 +5,23 @@
 
 'use strict';
 
+export class CityVmSimple {
+    public id: string;
+    public name: string;
+
+    constructor(public city) {
+        this.id = city.id;
+        this.name = city.name;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+        }
+    }
+}
+
 export class CityVM {
 
     constructor(public city) {
