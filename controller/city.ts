@@ -297,7 +297,7 @@ export class CityController extends AbstractController {
         return city;
     }
 
-    @Router('/getAirpOrRstn')
+    @Router('/getAirportOrStation')
     async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
         const reg = /^[a-zA-Z]{3}/
         const { type, code }: { type: string, code: string } = req.query
