@@ -5,6 +5,11 @@
 import {Sequelize, DataTypes} from "sequelize";
 export = function (DB: Sequelize, Types: DataTypes) {
     var attributes = {
+        id: {
+            type: Types.BIGINT,
+            autoIncrement: true,
+            primaryKey: true,
+        },
         cityId:{
             type: Types.STRING(50)
         },
