@@ -49,7 +49,7 @@ build:image:
       - dist/
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
-    - docker build -t $DOCKER_CI_NAME .
+    - docker build -t $DOCKER_CI_NAME . --build-arg NPM_TOKEN=$NPM_TOKEN
     - docker push $DOCKER_CI_NAME
 
 
