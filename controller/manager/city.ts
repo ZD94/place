@@ -38,7 +38,6 @@ export default class ManagerCityController extends AbstractController {
 
     async update(req, res, next) {
         let { id } = req.params
-        let { name, letter, pinyin, lat, lng, fcode, country_code } = req.body;
         let cityModel = await DB.models['City'].findById(id);
         ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code"].forEach((key) => {
             if (req.body[key]) {
@@ -100,6 +99,7 @@ export default class ManagerCityController extends AbstractController {
         if (!cityId || !lang || !value) {
             return res.sendStatus(400)
         }
+        delete req.body.id
         let entity = DB.models['CityAlternateName'].build(req.body)
         entity = await entity.save()
         return res.json(this.reply(0, entity))
