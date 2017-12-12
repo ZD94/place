@@ -1,4 +1,4 @@
-FROM dk.jingli365.com/jl-run:v2
+FROM dk.jingli365.com/jl-run:v3
 MAINTAINER Wanglihui <lihui.wang@jingli365.com>
 WORKDIR /opt/app
 COPY package.json ./
