@@ -44,7 +44,7 @@ export default class ManagerCityController extends AbstractController {
         let { id } = req.params
         let { name, letter, pinyin, lat, lng, fcode, country_code } = req.body;
         let cityModel = await DB.models['City'].findById(id);
-        ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code"].forEach((key) => {
+        ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code", "parentId"].forEach((key) => {
             if (req.body[key]) {
                 cityModel[key] = req.body[key];
             }
