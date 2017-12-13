@@ -1,5 +1,6 @@
 import { AbstractController, Restful, Router } from "@jingli/restful";
 import { DB } from '@jingli/database';
+import doc from '@jingli/doc';
 
 @Restful('/manager/city')
 export default class ManagerCityController extends AbstractController {
@@ -8,6 +9,7 @@ export default class ManagerCityController extends AbstractController {
         return /^\d+$/.test(id);
     }
 
+    @doc('获取城市详情')
     async get(req, res, next) {
         let { id } = req.params;
         let { lang } = req.query;
@@ -16,6 +18,7 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, cityModel));
     }
 
+    @doc('添加城市')
     async add(req, res, next) {
         let { id, name, letter, pinyin, lat, lng, fcode, country_code, parentId } = req.body;
         let errorMsg = [];
@@ -36,10 +39,11 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, cityModel));
     }
 
+    @doc("更新城市")
     async update(req, res, next) {
         let { id } = req.params
         let cityModel = await DB.models['City'].findById(id);
-        ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code"].forEach((key) => {
+        ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code", "parentId"].forEach((key) => {
             if (req.body[key]) {
                 cityModel[key] = req.body[key];
             }
@@ -49,6 +53,7 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, cityModel));
     }
 
+    @doc("获取下级城市")
     @Router('/:id/children')
     async getRoot(req, res, next) {
         let { id } = req.params;
@@ -65,13 +70,27 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, cities));
     }
 
-    @Router('/:id/alter-name')
+    @doc("获取城市别名")
+    @Router('/:id/alternate')
     async alterNames(req, res, next) {
         let { id } = req.params;
         let alterNames = await DB.models['CityAlternateName'].findAll({ where: { cityId: id } });
         return res.json(this.reply(0, alterNames));
     }
 
+    @doc("根据ID获取城市别名")
+    @Router("/:id/alternate/:alternateId")
+    async getAlternate(req, res, next) { 
+        let { id, alternateId } = req.params;
+        let alternate = await DB.models['CityAlternateName'].findOne({
+            where: {
+                cityId: id,
+                id: alternateId
+            }
+        })
+    }
+
+    @doc("根据关键字搜索城市")
     @Router('/search/:keyword')
     async search(req, res, next) {
         let { keyword } = req.params;
@@ -93,6 +112,7 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, cities));
     }
 
+    @doc("新增别名")
     @Router('/alternate', 'POST')
     async addAlternateName(req, res, next) {
         const { cityId, lang, value } = req.body
@@ -105,6 +125,7 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, entity))
     }
 
+    @doc("更新别名")
     @Router('/alternate/:id', 'PUT')
     async updateAlternate(req, res, next) {
         let alternate = await DB.models['CityAlternateName'].findById(req.params.id)
@@ -115,6 +136,7 @@ export default class ManagerCityController extends AbstractController {
         return res.json(this.reply(0, alternate))
     }
 
+    @doc("删除别名")
     @Router('/alternate/:id', 'DELETE')
     async delAlternate(req, res, next) {
         const alternate = await DB.models['CityAlternateName'].findById(req.params.id)
