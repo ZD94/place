@@ -72,11 +72,23 @@ export default class ManagerCityController extends AbstractController {
     }
 
     @doc("获取城市别名")
-    @Router('/:id/alter-name')
+    @Router('/:id/alternate')
     async alterNames(req, res, next) {
         let { id } = req.params;
         let alterNames = await DB.models['CityAlternateName'].findAll({ where: { cityId: id } });
         return res.json(this.reply(0, alterNames));
+    }
+
+    @doc("根据ID获取城市别名")
+    @Router("/:id/alternate/:alternateId")
+    async getAlternate(req, res, next) { 
+        let { id, alternateId } = req.params;
+        let alternate = await DB.models['CityAlternateName'].findOne({
+            where: {
+                cityId: id,
+                id: alternateId
+            }
+        })
     }
 
     @doc("根据关键字搜索城市")
