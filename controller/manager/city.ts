@@ -89,6 +89,7 @@ export default class ManagerCityController extends AbstractController {
                 id: alternateId
             }
         })
+        res.json(this.reply(0, alternate))
     }
 
     @doc("根据关键字搜索城市")
