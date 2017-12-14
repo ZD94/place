@@ -9,3 +9,4 @@ import {DB} from "@jingli/database";
 DB.models['City'] = DB.import(path.join(__dirname, './City'));
 DB.models['CityAltName'] = DB.import(path.join(__dirname, './CityAltName'));
 DB.models['GeoName'] = DB.import(path.join(__dirname, './GeoName'));
+DB.models['Safe'] = DB.import(path.join(__dirname, './Safe'));
