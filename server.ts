@@ -14,16 +14,22 @@ const logger = new Logger("main");
 import database = require("@jingli/database");
 database.init(config.postgres.url);
 import "./model";
+import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
 async function main() {
     await database.DB.sync({force: false})
     const server = http.createServer(app);
+    const port = config.listen;
+    
     server.on('listening', function() {
         logger.log(`server start on ${port}...`);
+        sendSuccssMsgToCluster(WORKER_BOOT_STATUS.SUCCSSED);
         if (!/^\d+$/.test(port)) {
             fs.chmodSync(port, '777');
         }
     })
-    const port = config.listen;
+    server.on('error', (err) => {
+        sendSuccssMsgToCluster(WORKER_BOOT_STATUS.FAILED);
+    });
     server.listen(port);
     return server;
 }
