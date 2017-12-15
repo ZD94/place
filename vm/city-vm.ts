@@ -34,6 +34,7 @@ export class CityVM {
             letter: this.city.letter,
             timezone: this.city.timezone,
             parentId: this.city.parentId,
+            pinyin: this.city.prinyin,
             location: {
                 lat: this.city.lat,
                 lng: this.city.lng,
