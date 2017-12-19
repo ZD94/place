@@ -12,6 +12,7 @@ import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
+import { ParamsNotValidError, NotFoundError } from '@jingli/error';
 
 let cityCols = [
     "id",
@@ -253,6 +254,9 @@ export class CityController extends AbstractController {
     @Router('/:id/children')
     async children(req, res, next) {
         let { id, lang } = req.params;
+        if (!/^\d+$/.test(id)) { 
+            throw new ParamsNotValidError("id");
+        }
         let cities = await DB.models['City'].findAll({ where: { "parentId": id } });
         cities = await Promise.all(cities.map(async (city) => {
             city = await this.useAlternateName(city, lang);
@@ -271,7 +275,7 @@ export class CityController extends AbstractController {
         }
         let city = await DB.models['City'].findById(id);
         if (!city || !city.parentId) {
-            return res.json(this.reply(404, null));
+            throw new NotFoundError("city");
         }
         req.params.id = city.parentId;
         return this.get.bind(this)(req, res, next);
@@ -311,16 +315,19 @@ export class CityController extends AbstractController {
     @doc("根据机场或车站字码获取详情")
     @Router('/getAirportOrStation')
     async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
-        const reg = /^[a-zA-Z]{3}/
+        const reg = /^[a-zA-Z]{3}$/
         const { type, code }: { type: string, code: string } = req.query
         const valid: boolean = reg.test(type) && reg.test(code)
-        if (!valid) return res.json(this.reply(400, null))
+        if (!valid) {
+            throw new ParamsNotValidError(["code", "type"])
+        }
 
         const alternate: ICityAlternate = await DB.models['CityAltName'].findOne({
             where: { lang: type.toUpperCase(), value: code.toUpperCase() }
         })
-        if (!alternate) return res.json(this.reply(404, null))
-
+        if (!alternate) {
+            throw new NotFoundError("AirportOrStation");
+        }
         const city: ICity = await DB.models['City'].findById(alternate.cityId)
         return res.json(this.reply(0, new CityVM(city)))
     }

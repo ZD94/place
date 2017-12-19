@@ -1,6 +1,7 @@
 import { AbstractController, Restful, Router } from "@jingli/restful";
 import { DB } from '@jingli/database';
 import doc from '@jingli/doc';
+import { ParamsNotValidError, NotFoundError } from '@jingli/error';
 
 @Restful('/manager/city')
 export default class ManagerCityController extends AbstractController {
@@ -28,8 +29,9 @@ export default class ManagerCityController extends AbstractController {
             }
         })
         if (errorMsg.length) {
-            return res.json(this.reply(500, errorMsg.join(",") + '格式不正确'));
+            throw new ParamsNotValidError(errorMsg);
         }
+
         let sql = `INSERT INTO city.cities_${country_code} (id, name, letter, pinyin, lat, lng, location, fcode, country_code, "parentId", created_at, updated_at) 
                     VALUES(${id}, '${name}', '${letter}', '${pinyin}', '${lat}', '${lng}', ST_SetSRID(ST_MakePoint(${lng}, ${lat}),4326), '${fcode}', '${country_code}', '${parentId}', now(), now());
         `;
@@ -119,7 +121,7 @@ export default class ManagerCityController extends AbstractController {
     async addAlternateName(req, res, next) {
         const { cityId, lang, value } = req.body
         if (!cityId || !lang || !value) {
-            return res.sendStatus(400)
+            throw new ParamsNotValidError(["cityId", "lang", "value"]);
         }
         let entity = DB.models['CityAlternateName'].build(req.body)
         entity = await entity.save()
