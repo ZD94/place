@@ -52,7 +52,11 @@ function getLetter(str) {
 // const writeStream = fs.createWriteStream(f);
 
 async function trySaveCity(obj: GeoPlace) { 
-    let city = await DB.models['city'].findById(obj.id);
+    let city = await DB.models['City'].findById(obj.id);
+    if (city) { 
+        return city;
+    }
+    city = await DB.models['CityRobot'].findById(obj.id);
     if (city) { 
         return city;
     }
@@ -64,12 +68,25 @@ async function trySaveCity(obj: GeoPlace) {
     py = py.join(' ');
     letter = getLetter(py)
 
-    let sql = `INSERT INTO public.cities_robot 
-                    ( id, letter, pinyin, name, lat, lng, country_code,
-                        location, timezone, "parentId", created_at, updated_at)
-               VALUES('${obj.id}', '${letter}', '${py}', '${obj.name}', '${obj.latitude}', '${obj.longitude}', '${obj.countryCode.toUpperCase()}',
-                null, '${obj.timezone}', null, now(), now());`;
-    await DB.query(sql);
+    let cityRobot = DB.models['CityRobot'].build({
+        id: obj.id,
+        letter: letter,
+        pinyin: py,
+        lng: obj.longitude,
+        lat: obj.longitude,
+        name: obj.name,
+        country_code: obj.countryCode,
+        timezone: obj.timezone,
+    })
+    await cityRobot.save();
+
+    // let sql = `INSERT INTO public.cities_robot 
+    //                 ( id, letter, pinyin, name, lat, lng, country_code,
+    //                     location, timezone, "parentId", created_at, updated_at)
+    //            VALUES('${obj.id}', '${letter}', '${py}', '${obj.name}', '${obj.latitude}',
+    //             '${obj.longitude}', '${obj.countryCode.toUpperCase()}',
+    //             null, '${obj.timezone}', null, now(), now());`;
+    // await DB.query(sql);
     // writeStream.write(sql + '\n');
     // console.log(sql);
 }
