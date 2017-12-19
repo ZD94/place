@@ -29,3 +29,4 @@ function checkPort() {
 }
 
 serverStart(checkPort);
+require("./crontab");

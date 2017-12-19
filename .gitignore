@@ -6,3 +6,4 @@ config.local.json
 log/
 package-lock.json
 .vscode/
+data/

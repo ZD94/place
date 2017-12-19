@@ -34,7 +34,7 @@ async function main() {
     return server;
 }
 
-main()
+main()  
     .catch( (err) => {
         throw err;
     })
