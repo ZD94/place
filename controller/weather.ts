@@ -7,7 +7,7 @@
 import {AbstractController, Restful} from "@jingli/restful";
 import * as request from "request-promise";
 import WeatherVm from "../vm/weather-vm";
-import { doc } from '@jingli/doc';
+import doc from '@jingli/doc';
 
 @Restful()
 export class Weather extends AbstractController {

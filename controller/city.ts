@@ -11,7 +11,7 @@ import City = require("../model/City");
 import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
-import { doc } from '@jingli/doc';
+import doc from '@jingli/doc';
 
 let cityCols = [
     "id",

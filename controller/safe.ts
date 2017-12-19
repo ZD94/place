@@ -8,7 +8,7 @@ import {AbstractController, Restful, Router} from "@jingli/restful";
 import * as request from 'request-promise';
 import * as moment from 'moment';
 import {DB} from '@jingli/database';
-import { doc } from '@jingli/doc';
+import doc from '@jingli/doc';
 
 @Restful()
 export default class SafeController extends AbstractController {
