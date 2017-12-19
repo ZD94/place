@@ -28,6 +28,7 @@ async function main() {
         }
     })
     server.on('error', (err) => {
+        console.error(err);
         sendSuccssMsgToCluster(WORKER_BOOT_STATUS.FAILED);
     });
     server.listen(port);

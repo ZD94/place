@@ -6,6 +6,7 @@ import { handleFile } from './handle';
 import * as fs from 'fs';
 import { DB } from '@jingli/database';
 const pinyin = require("pinyin");
+import * as C from '@jingli/config';
 
 async function tryMkdir(dir: string) { 
     return new Promise((resolve, reject) => {
@@ -88,7 +89,7 @@ async function parsePlace(arr: string[]) {
 }
 
 export async function main() { 
-    let dist = path.join(__dirname, '../data');
+    let dist = C.dataDir;
     await tryMkdir(dist);
     let alternateDist = path.join(dist, 'alternatenames')
     await tryMkdir(alternateDist);

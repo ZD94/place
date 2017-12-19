@@ -2,6 +2,7 @@
 import { CronJob } from 'cron';
 import { main } from './fetch-data/fetch';
 import * as cluster from 'cluster';
+import * as C from '@jingli/config';
 
 function jobStop() { 
     console.log("job stop ...");
@@ -31,7 +32,7 @@ async function scheduleFn() {
 
 if (cluster.isMaster) { 
     const job = new CronJob({
-        cronTime: '0 44 * * * *',
+        cronTime: C.cron,
         onTick: scheduleFn,
         start: true,
         timeZone: 'Asia/Shanghai'
