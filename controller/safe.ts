@@ -8,6 +8,7 @@ import {AbstractController, Restful, Router} from "@jingli/restful";
 import * as request from 'request-promise';
 import * as moment from 'moment';
 import {DB} from '@jingli/database';
+import { doc } from '@jingli/doc';
 
 @Restful()
 export default class SafeController extends AbstractController {
@@ -20,6 +21,7 @@ export default class SafeController extends AbstractController {
         return /^\d+$/.test(id);
     }
 
+    @doc("全球安全城市排行")
     @Router('/rank')
     async rank(req, res, next) {
         let dateStr = moment().format('YYYYMMDD');

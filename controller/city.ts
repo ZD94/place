@@ -11,6 +11,7 @@ import City = require("../model/City");
 import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
+import { doc } from '@jingli/doc';
 
 let cityCols = [
     "id",
@@ -61,6 +62,7 @@ export class CityController extends AbstractController {
         return next();
     }
 
+    @doc("获取城市详情")
     async get(req, res, next) {
         let { id } = req.params;
         let { lang, cityCode } = req.query;
@@ -92,6 +94,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cityVm));
     }
 
+    @doc('根据首字母获取城市')
     @Router('/getCitiesByLetter')
     async getCityByLetter(req, res, next) {
         const { letter = 'A', lang = 'zh' } = req.query;
@@ -136,6 +139,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cities));
     }
 
+    @doc('根据名字获取城市')
     @Router('/getCityByName', 'GET')
     async getCityByName(req, res, next) {
         const { name } = req.query
@@ -149,6 +153,7 @@ export class CityController extends AbstractController {
         return res.json(this.reply(0, new CityVM(result)))
     }
 
+    @doc("获取城市列表")
     async find(req, res, next) {
         let { p, pz, order, where, lang } = req.query;
         p = p || 1;
@@ -176,6 +181,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cities));
     }
 
+    @doc("根据关键字搜索城市")
     @Router('/search')
     async keyword(req, res, next) {
         let { p, pz, lang, keyword } = req.query;
@@ -203,6 +209,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cities));
     }
 
+    @doc("根据坐标查询附近城市")
     @Router('/nearby/:location')
     async nearBy(req, res, next) {
         let { location } = req.params;
@@ -242,6 +249,7 @@ export class CityController extends AbstractController {
         res.send(this.reply(0, cities));
     }
 
+    @doc("获取下级地区")
     @Router('/:id/children')
     async children(req, res, next) {
         let { id, lang } = req.params;
@@ -253,6 +261,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cities));
     }
 
+    @doc("获取上级地区")
     @Router('/:id/parent')
     async parent(req, res, next) {
         let { id } = req.params;
@@ -268,6 +277,7 @@ export class CityController extends AbstractController {
         return this.get.bind(this)(req, res, next);
     }
 
+    @doc("获取所有别名")
     @Router('/:id/alternate')
     async alternates(req, res, next) {
         let { id } = req.params;
@@ -278,6 +288,7 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, alternateNames));
     }
 
+    @doc("获取特定语言别名")
     @Router('/:id/alternate/:lang')
     async alternate(req, res, next) {
         let { id, lang } = req.params;
@@ -297,6 +308,7 @@ export class CityController extends AbstractController {
         return city;
     }
 
+    @doc("根据机场或车站字码获取详情")
     @Router('/getAirportOrStation')
     async getPlaceByCode(req: Request, res: Response, next: NextFunction) {
         const reg = /^[a-zA-Z]{3}/
