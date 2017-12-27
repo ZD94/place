@@ -12,7 +12,9 @@ import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
-import { ParamsNotValidError, NotFoundError } from '@jingli/error';
+import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
+import { getCity, isMatchOldStyle, isMatchNewStyle } from '../service/city';
+import { getCiphers } from 'tls';
 
 let cityCols = [
     "id",
@@ -70,26 +72,14 @@ export class CityController extends AbstractController {
         if (!lang) {
             lang = 'zh';
         }
-        let city = await DB.models['City'].findById(id);
-
-        //兼容之前city接口
-        if (!city) {
-            let options = {
-                where: {
-                    value: id,
-                    lang: "jlcityid"
-                }
-            }
-            let commonCity = await DB.models['CityAltName'].findOne(options);
-            if (commonCity) {
-                city = await DB.models['City'].findById(commonCity.cityId);
-            }
+        if (!id) { 
+            throw new ParamsNotValidError('id');
         }
 
+        let city = await getCity(id)
         if (!city) {
-            return res.json(this.reply(404, null));
+            throw new NotFoundError('city');
         }
-
         city = await this.useAlternateName(city, lang);
         let cityVm = new CityVM(city);
         res.json(this.reply(0, cityVm));
@@ -145,13 +135,22 @@ export class CityController extends AbstractController {
     async getCityByName(req, res, next) {
         const { name } = req.query
         if (!name) {
-            throw { code: -1, msg: "城市名称为空" };
+            throw new CustomerError(502, '城市名称不能为空');
         }
-        let result = await DB.models['City']
+
+        let city = await DB.models['City']
             .findOne({
-                where: { name }
-            })
-        return res.json(this.reply(0, new CityVM(result)))
+                where: {
+                    name,
+                    fcode: {
+                        $in: ["ADM1", "ADM2", "ADM3", "PPLC", "PPLA", "PPLA2"]
+                    }
+                }
+            });
+        if (!city) { 
+            throw new NotFoundError('city');
+        }
+        return res.json(this.reply(0, new CityVM(city)))
     }
 
     @doc("获取城市列表")
@@ -192,7 +191,20 @@ export class CityController extends AbstractController {
         if (p < 1 || !/^\d+$/.test(p)) {
             p = 1;
         }
-        let alternates = await DB.models['CityAltName'].findAll({ where: { value: keyword } });
+        let langs = [];
+        if (!lang) {
+            langs.push(...['zh', 'us', 'en']);
+        } else { 
+            langs.push(lang);
+        }
+        let alternates = await DB.models['CityAltName'].findAll({
+            where: {
+                value: keyword,
+                lang: {
+                    $in: langs
+                }
+            }
+        });
         let cityIds: number[] = alternates.map((alternate) => {
             return alternate.cityId;
         })
@@ -254,7 +266,14 @@ export class CityController extends AbstractController {
     @Router('/:id/children')
     async children(req, res, next) {
         let { id, lang } = req.params;
-        if (!/^\d+$/.test(id)) { 
+        if (isMatchOldStyle(id)) { 
+            let city = await getCity(id);
+            if (!city) { 
+                throw new NotFoundError('city');
+            }
+            id = city.id;
+        }
+        if (!isMatchNewStyle(id)) {
             throw new ParamsNotValidError("id");
         }
         let cities = await DB.models['City'].findAll({ where: { "parentId": id } });
@@ -273,7 +292,7 @@ export class CityController extends AbstractController {
         if (!lang) {
             lang = 'zh';
         }
-        let city = await DB.models['City'].findById(id);
+        let city = await getCity(id);
         if (!city || !city.parentId) {
             throw new NotFoundError("city");
         }
@@ -285,6 +304,13 @@ export class CityController extends AbstractController {
     @Router('/:id/alternate')
     async alternates(req, res, next) {
         let { id } = req.params;
+        if (isMatchOldStyle(id)) { 
+            let city = await getCity(id);
+            if (!city) { 
+                throw new NotFoundError('city');
+            }
+            id = city.id;
+        }
         let alternateNames = await DB.models['CityAltName'].findAll({ where: { cityId: id } });
         alternateNames = alternateNames.map((alternateName) => {
             return new AlternameVm(alternateName);
@@ -296,6 +322,13 @@ export class CityController extends AbstractController {
     @Router('/:id/alternate/:lang')
     async alternate(req, res, next) {
         let { id, lang } = req.params;
+        if (isMatchOldStyle(id)) { 
+            let city = await getCity(id);
+            if (!city) { 
+                throw new NotFoundError('city');
+            }
+            id = city.id;
+        }
         let alternateName = await DB.models['CityAltName'].findOne({ where: { cityId: id, lang: lang } });
         alternateName = new AlternameVm(alternateName);
         res.json(this.reply(0, alternateName));
@@ -304,6 +337,9 @@ export class CityController extends AbstractController {
     async useAlternateName(city, lang) {
         if (!lang) {
             lang = 'zh';
+        }
+        if (!city) { 
+            throw new ParamsNotValidError('city');
         }
         let alternateName = await DB.models['CityAlternateName'].findOne({ where: { cityId: city.id, lang: lang } });
         if (alternateName && alternateName.value) {
@@ -329,6 +365,9 @@ export class CityController extends AbstractController {
             throw new NotFoundError("AirportOrStation");
         }
         const city: ICity = await DB.models['City'].findById(alternate.cityId)
+        if (!city) { 
+            throw new NotFoundError('city');
+        }
         return res.json(this.reply(0, new CityVM(city)))
     }
 }
