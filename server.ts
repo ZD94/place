@@ -37,6 +37,7 @@ async function main() {
 
 main()  
     .catch((err) => {
+        logger.error(err);
         sendSuccssMsgToCluster(WORKER_BOOT_STATUS.FAILED);
         throw err;
     })
