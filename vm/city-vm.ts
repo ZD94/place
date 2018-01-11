@@ -38,6 +38,7 @@ export class CityVM {
             countryCode: this.city.country_code,
             latitude: this.city.lat,
             longitude: this.city.lng,
+            fcode: this.city.fcode,
             location: {
                 lat: this.city.lat,
                 lng: this.city.lng,
