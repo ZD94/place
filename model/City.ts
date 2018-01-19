@@ -36,9 +36,6 @@ export = function (DB: Sequelize, Types: DataTypes) {
         fcode: {
             type: Types.STRING(50)
         },
-        type: {
-            type: Types.INTEGER
-        },
         country_code: {
             type: Types.STRING(50)
         }
