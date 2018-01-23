@@ -9,7 +9,7 @@ variables:
   JL_APP_DAEMON_WAIT_INIT: log/nohup.out
   JL_APP_PORT: "/data/web.sock"
   JL_APP_POSTGRES_URL: "postgres://placemanager:p1ac3jingli365@jingli365.com:5432/jlplace_new"
-
+  JL_APP_REDIS: "redis://l.jingli365.com:16379"
 stages:
   - build
   - docker
@@ -90,6 +90,8 @@ deploy:release:
   only:
     - /^release$/
   when: manual
+  variables:
+    JL_APP_REDIS: "redis://dockerhost:6379"
   environment:
     name: release
     url: https://j.jingli365.com/proj/svr-place/
