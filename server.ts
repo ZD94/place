@@ -22,7 +22,7 @@ import * as cityIdCache from './service/cache';
 import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
 async function main() {
     await database.DB.sync({force: false})
-    await cityIdCache.init();
+    cityIdCache.init();
     const server = http.createServer(app);
     const port = config.listen;
     
