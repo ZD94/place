@@ -14,7 +14,7 @@ const logger = new Logger("main");
 import database = require("@jingli/database");
 database.init(config.postgres.url);
 import cache from '@jingli/cache';
-cache.init({redis_conf: "redis://localhost", prefix: config.appName});
+cache.init({redis_conf: config.redis, prefix: config.appName});
 
 import "./model";
 import * as cityIdCache from './service/cache';
