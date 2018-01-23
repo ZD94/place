@@ -14,7 +14,6 @@ import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
 import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
 import { getCity, isMatchOldStyle, isMatchNewStyle } from '../service/city';
-import { getCiphers } from 'tls';
 
 let cityCols = [
     "id",
@@ -341,7 +340,7 @@ export class CityController extends AbstractController {
         if (!city) { 
             throw new ParamsNotValidError('city');
         }
-        let alternateName = await DB.models['CityAlternateName'].findOne({ where: { cityId: city.id, lang: lang } });
+        let alternateName = await DB.models['CityAlternateName'].findOne({ where: { cityId: city.id, lang: lang } , order: [["isRecommend", "desc"]]});
         if (alternateName && alternateName.value) {
             city.name = alternateName.value;
         }

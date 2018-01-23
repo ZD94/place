@@ -13,10 +13,16 @@ const logger = new Logger("main");
 
 import database = require("@jingli/database");
 database.init(config.postgres.url);
+import cache from '@jingli/cache';
+cache.init({redis_conf: "redis://localhost", prefix: config.appName});
+
 import "./model";
+import * as cityIdCache from './service/cache';
+
 import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
 async function main() {
     await database.DB.sync({force: false})
+    await cityIdCache.init();
     const server = http.createServer(app);
     const port = config.listen;
     

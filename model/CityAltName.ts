@@ -20,6 +20,10 @@ export = function (DB: Sequelize, Types: DataTypes) {
         value:{
             //geoNameId
             type: Types.STRING(255)
+        },
+        isRecommend: {
+            type: Types.BOOLEAN,
+            defaultValue: false,
         }
     }
     var options = {

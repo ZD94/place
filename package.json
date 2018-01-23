@@ -36,6 +36,7 @@
     "typescript": "2.5.3"
   },
   "dependencies": {
+    "@jingli/cache": "0.0.3",
     "@jingli/config": "1.0.6",
     "@jingli/database": "1.0.1",
     "@jingli/doc": "0.0.3",
