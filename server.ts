@@ -3,11 +3,9 @@
  */
 
 'use strict';
-import fs = require("fs");
 import http = require("http");
 import app from './app';
 import config = require("@jingli/config");
-import cluster = require("cluster");
 
 import Logger from "@jingli/logger";
 const logger = new Logger("main");
@@ -22,9 +20,36 @@ import * as cityIdCache from './service/cache';
 import * as tableNameWithIdCache from './service/cache-table';
 
 import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
+import * as fs from 'fs';
+import * as path from 'path';
+
+function isNeedInitData() {
+    let expireTime = Date.now() + 10 * 24 * 60 * 60 * 1000;
+    let lockFile = path.join(config.dataDir,'cache.lock');
+    //不存在时需要创建
+    if (!fs.existsSync(lockFile)) {
+        fs.writeFileSync(lockFile, expireTime);
+        return true;
+    }
+    //日期失效时需要创建
+    let d: string|number = fs.readFileSync(lockFile, 'utf8');
+    try {
+        d = Number(d);
+        if (d && Date.now() > d) {
+            fs.writeFileSync(lockFile, expireTime);
+            return true;
+        }
+    } catch(err) {
+        fs.writeFileSync(lockFile, expireTime);
+        return true;
+    }
+    //不需要创建
+    return false;
+}
+
 async function main() {
     await database.DB.sync({force: false})
-    if (cluster.isMaster) {
+    if (isNeedInitData()) {
         cityIdCache.init()
             .catch( (err) => {
                 logger.error('加载新旧ID对应关系缓存时报错:', err.stack);
