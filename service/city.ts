@@ -1,7 +1,7 @@
 
 import { DB } from '@jingli/database';
 import {getNewCityId, cacheCityId} from './cache';
-
+import {getPlace} from './cache-table';
 export async function getCity(id: string) { 
     if (!id) { 
         return null;
@@ -23,7 +23,10 @@ export async function getCity(id: string) {
             await cacheCityId(oldId, id);
         }
     }
-    return DB.models['City'].findById(id);
+    let city = await getPlace(id);
+    if (!city)
+        city = await DB.models['City'].findById(id);
+    return city;
 }
 
 export function isMatchOldStyle(id: string) : boolean { 

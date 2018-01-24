@@ -19,6 +19,7 @@ cache.init({redis_conf: config.redis, prefix: config.appName});
 
 import "./model";
 import * as cityIdCache from './service/cache';
+import * as tableNameWithIdCache from './service/cache-table';
 
 import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
 async function main() {
@@ -27,6 +28,10 @@ async function main() {
         cityIdCache.init()
             .catch( (err) => {
                 logger.error('加载新旧ID对应关系缓存时报错:', err.stack);
+            })
+        tableNameWithIdCache.init()
+            .catch( (err) => {
+                logger.error('加载ID与表明关系:', err.stack);
             })
     }
     const server = http.createServer(app);
