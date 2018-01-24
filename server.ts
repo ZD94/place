@@ -7,6 +7,7 @@ import fs = require("fs");
 import http = require("http");
 import app from './app';
 import config = require("@jingli/config");
+import cluster = require("cluster");
 
 import Logger from "@jingli/logger";
 const logger = new Logger("main");
