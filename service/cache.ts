@@ -28,7 +28,9 @@ export async function init() {
 export async function getNewCityId(oldId: string) :Promise<string> {
     let key = getCacheKey(oldId);
     let newId = await cache.read(key);
-    newId = newId.toString();
+    if (newId) {
+        newId = newId.toString();
+    }
     return newId;
 }
 
