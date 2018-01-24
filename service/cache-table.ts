@@ -280,7 +280,7 @@ export async function getPlace(id: string) {
     let tableName = await getTableName(id);
     if (!tableName)
         return null;
-    let columns = Object.keys(DB.models['City'].attributes)
+    let columns = Object.keys(DB.models['City']['attributes'])
     columns = columns.map( (column) => {
         return `"${column}"`;
     })
