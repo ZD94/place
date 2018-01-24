@@ -22,7 +22,12 @@ import * as cityIdCache from './service/cache';
 import { sendSuccssMsgToCluster, WORKER_BOOT_STATUS } from "@jingli/server";
 async function main() {
     await database.DB.sync({force: false})
-    cityIdCache.init();
+    if (cluster.isMaster) {
+        cityIdCache.init()
+            .catch( (err) => {
+                logger.error('加载新旧ID对应关系缓存时报错:', err.stack);
+            })
+    }
     const server = http.createServer(app);
     const port = config.listen;
     
