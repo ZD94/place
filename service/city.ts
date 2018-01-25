@@ -29,6 +29,18 @@ export async function getCity(id: string) {
     return city;
 }
 
+export function getCityAlternateName(cityid: string, lang: string) {
+    return DB.models['CityAltName'].findOne({
+        where: {
+            lang: lang,
+            cityId: cityid
+        },
+        order: [
+            ["isRecommend", "desc"]
+        ]
+    })
+}
+
 export function isMatchOldStyle(id: string) : boolean { 
     return /^CT(W)?_\d+$/.test(id);
 }

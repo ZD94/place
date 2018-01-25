@@ -3,6 +3,7 @@
  */
 
 
+
 'use strict';
 import { Router, Restful, AbstractController } from '@jingli/restful';
 import { DB } from "@jingli/database";
@@ -13,7 +14,8 @@ import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
 import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
-import { getCity, isMatchOldStyle, isMatchNewStyle } from '../service/city';
+import {getCity, isMatchOldStyle, isMatchNewStyle, getCityAlternateName} from '../service/city';
+import {getNewCityId} from "../service/cache";
 
 let cityCols = [
     "id",
@@ -57,9 +59,14 @@ export class CityController extends AbstractController {
         return /^\d+$/.test(id) || /^CT_\d+$/.test(id) || /^CTW_\d+$/.test(id);
     }
 
-    $before(req, res, next) {
+    async $before(req, res, next) {
         if (!req.query.lang) {
             req.query.lang = 'zh';
+        }
+        let {id} = req.params;
+        if (id && isMatchOldStyle(id)) {
+            id = await getNewCityId(id);
+            req.params.id = id;
         }
         return next();
     }
@@ -67,7 +74,7 @@ export class CityController extends AbstractController {
     @doc("获取城市详情")
     async get(req, res, next) {
         let { id } = req.params;
-        let { lang, cityCode } = req.query;
+        let { lang} = req.query;
         if (!lang) {
             lang = 'zh';
         }
@@ -328,7 +335,7 @@ export class CityController extends AbstractController {
             }
             id = city.id;
         }
-        let alternateName = await DB.models['CityAltName'].findOne({ where: { cityId: id, lang: lang } });
+        let alternateName = await getCityAlternateName(city.id, lang);
         alternateName = new AlternameVm(alternateName);
         res.json(this.reply(0, alternateName));
     }
@@ -340,7 +347,7 @@ export class CityController extends AbstractController {
         if (!city) { 
             throw new ParamsNotValidError('city');
         }
-        let alternateName = await DB.models['CityAlternateName'].findOne({ where: { cityId: city.id, lang: lang } , order: [["isRecommend", "desc"]]});
+        let alternateName = await getCityAlternateName(city.id, lang);
         if (alternateName && alternateName.value) {
             city.name = alternateName.value;
         }
