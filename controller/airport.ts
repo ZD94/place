@@ -2,7 +2,7 @@ import { AbstractController, Restful, Router } from "@jingli/restful";
 import { DB } from '@jingli/database';
 import doc from '@jingli/doc';
 import { AirportVM } from "../vm/airport-vm";
-import {getCityAlternateName, isMatchOldStyle} from "../service/city";
+import {getCity, getCityAlternateName, isMatchOldStyle} from "../service/city";
 import {getNewCityId} from "../service/cache";
 
 @Restful()
@@ -13,11 +13,10 @@ export default class AirportController extends AbstractController {
     }
 
     async $before(req, res, next) {
-        let {id, cityId} = req.params;
-        if (id && isMatchOldStyle(id)) {
-            id = await getNewCityId(id);
-            req.params.id = id;
+        if (!req.query.lang) {
+            req.query.lang = 'zh';
         }
+        let {cityId} = req.params;
         if (cityId && isMatchOldStyle(cityId)) {
             cityId = await getNewCityId(cityId);
             req.params.cityId = cityId;
@@ -33,16 +32,24 @@ export default class AirportController extends AbstractController {
     async get(req, res, next) { 
         let { id } = req.params;
         let { lang } = req.query;
-        let alternateName = await DB.models['CityAltName'].findOne({
-            where: {
-                lang: 'iata',
-                value: id,
+        let alternateName;
+        let codes = ['iata', 'ctripcode', 'iatacode'];
+        for(let code of codes) {
+            alternateName = await DB.models['CityAltName'].findOne({
+                where: {
+                    lang: code,
+                    value: id,
+                }
+            });
+            if (alternateName) {
+                break;
             }
-        });
+        }
+
         if (!alternateName) { 
             return res.json(this.reply(404, null));
         }
-        let airport = await DB.models['City'].findById(alternateName.cityId);
+        let airport = await getCity(alternateName.cityId);
         airport = await this.useAlternateName(airport, lang);
         let airportVM = new AirportVM(id, airport);
         res.json(this.reply(0, airportVM.toJSON()));
