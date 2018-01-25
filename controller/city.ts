@@ -335,7 +335,7 @@ export class CityController extends AbstractController {
             }
             id = city.id;
         }
-        let alternateName = await getCityAlternateName(city.id, lang);
+        let alternateName = await getCityAlternateName(id, lang);
         alternateName = new AlternameVm(alternateName);
         res.json(this.reply(0, alternateName));
     }
