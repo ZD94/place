@@ -15,7 +15,7 @@ Logger.init(config.logger);
 serverInit({
     name: config.appName,
     entryPath: path.join(__dirname, './server'),
-    workerNumbers: 0,
+    workerNumbers: 4,
     cluster: config.cluster,
 })
 
