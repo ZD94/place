@@ -9,10 +9,14 @@ export default class AlternameVm {
     }
 
     toJSON() {
+        if (!this.alternameInstance) {
+            return null;
+        }
         return {
             id: this.alternameInstance.id,
             lang: this.alternameInstance.lang,
             value: this.alternameInstance.value,
+            isRecommend: this.alternameInstance.isRecommend,
         }
     }
 }

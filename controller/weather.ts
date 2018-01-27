@@ -7,6 +7,7 @@
 import {AbstractController, Restful} from "@jingli/restful";
 import * as request from "request-promise";
 import WeatherVm from "../vm/weather-vm";
+import doc from '@jingli/doc';
 
 @Restful()
 export class Weather extends AbstractController {
@@ -19,6 +20,7 @@ export class Weather extends AbstractController {
         return /^\d+$/.test(id) || /^CTW?_\d+$/.test(id);
     }
 
+    @doc("获取城市天气信息")
     async get(req, res, next) {
         let {id} = req.params;
         let result = await request

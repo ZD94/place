@@ -7,13 +7,21 @@
 import path = require("path");
 import express = require("express");
 const app = express();
-import { registerControllerToRouter, scannerDecoration } from '@jingli/restful';
+import { registerControllerToRouter, scannerDecoration, reply } from '@jingli/restful';
 const bodyParser = require('body-parser')
+import { init } from '@jingli/error';
 
-// import {DB} from '@jingli/database';
-// import _ = require("lodash")
+//初始化错误语言包
+init({
+    default: 'zh',
+    langs: ['zh', 'en'],
+});
+
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+
 app.use('/manager', function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'PUT,GET,POST,OPTIONS,DELETE')
@@ -30,6 +38,13 @@ scannerDecoration(path.join(__dirname, 'controller'));
 registerControllerToRouter(app, {
     isShowUrls: true,
     kebabCase: false,
+});
+
+app.use(function (err, req, res, next) {
+    if (err.code && err.msg) {
+        return res.json(reply(err.code, err.msg));
+    }
+    next(err);
 });
 
 export default app;
