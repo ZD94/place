@@ -79,6 +79,7 @@ deploy:swarm:
     url: https://l.jingli365.com
   variables:
     JL_APP_PORT: 8080
+    JL_APP_POSTGRES_URL: "postgres://times:time0418@l.jingli365.com:15432/jlplace_new"
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
