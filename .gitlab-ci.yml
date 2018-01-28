@@ -77,6 +77,8 @@ deploy:swarm:
   environment:
     name: swarm
     url: https://l.jingli365.com
+  variables:
+    JL_APP_PORT: 8080
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
