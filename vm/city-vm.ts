@@ -43,6 +43,7 @@ export class CityVM {
                 lat: this.city.lat,
                 lng: this.city.lng,
             },
+            isCity: this.city.isCity,
         }
     }
 }

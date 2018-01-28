@@ -38,6 +38,10 @@ export = function (DB: Sequelize, Types: DataTypes) {
         },
         country_code: {
             type: Types.STRING(50)
+        },
+        "isCity": {
+            type: Types.BOOLEAN,
+            defaultValue: false,
         }
     }
     var options = {
