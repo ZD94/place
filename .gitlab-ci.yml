@@ -69,6 +69,22 @@ deploy:master:
     - echo deploy to https://l.jingli365.com
     - ssh test@l.jingli365.com /home/test/bin/docker_start.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG
 
+deploy:swarm:
+  stage: deploy
+  only:
+    - /^master$/
+  when: manual
+  environment:
+    name: swarm
+    url: https://l.jingli365.com
+  script:
+    - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
+    - docker pull $DOCKER_CI_NAME
+    - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
+    - docker push $DOCKER_BRANCH_NAME
+    - echo deploy to https://l.jingli365.com
+    - ssh test@l.jingli365.com /home/test/bin/docker_swarm.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG -p 8080
+
 deploy:test:
   stage: deploy
   only:
