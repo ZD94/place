@@ -150,6 +150,12 @@ export class CityController extends AbstractController {
         if (!limit || !/^\d+$/.test(limit.toString())) { 
             limit = 50;
         }
+        if (page < 1) { 
+            page = 1;
+        }
+        if (limit < 1) { 
+            limit = 50;
+        }
         letter = letter.toUpperCase();
         if (country_code && !countryCodeReg.test(country_code) && !otherCountryCodeReg.test(country_code)) { 
             throw new ParamsNotValidError('country_code');
@@ -215,64 +221,37 @@ export class CityController extends AbstractController {
         return res.json(this.reply(0, new CityVM(city)))
     }
 
-    @doc("获取全球大城市")
-    @Router('/bigcity')
-    async findBigCity(req, res, next) { 
+    @doc("获取城市列表")
+    async find(req, res, next) {
         let { p, pz, order, lang, isAbroad, countryCode } = req.query;
         p = p || 1;
-        if (!/^\d+$/.test(p) || p < 1) { 
+        if (!/^\d+$/.test(p) || p < 1) {
             p = 1;
         }
         pz = pz || 20;
-        if (!/^\d+$/.test(pz) || pz < 1) { 
+        if (!/^\d+$/.test(pz) || pz < 1) {
             pz = 20;
         }
-        if (!countryCode && isAbroad == false) { 
+        if (!countryCode && isAbroad == false) {
             countryCode = 'CN';
         }
-        let where: any = {isCity: true};
+        let where: any = { isCity: true };
         if (countryCode) {
             where.country_code = countryCode;
         }
-        if (!countryCode && isAbroad == true) { 
+        if (!countryCode && isAbroad == true) {
             where.country_code = {
                 '$neq': 'CN',
             };
         }
         let offset = (p - 1) * pz;
         let bigCities = await DB.models['City'].findAll({ where: where, offset: offset, limit: pz, order: order });
-        bigCities = await Promise.all(bigCities.map((place) => {
-            return this.useAlternateName(place, lang);
+        bigCities = await Promise.all(bigCities.map(async (place) => {
+            place = await this.useAlternateName(place, lang);
+            place = new CityVM(place);
+            return place;
         }));
         res.json(this.reply(0, bigCities));
-    }
-
-    @doc("获取城市列表")
-    async find(req, res, next) {
-        let { p, pz, order, where, lang } = req.query;
-        p = p || 1;
-        pz = pz || 20;
-        let params = req.query;
-        let query = {
-            where: where || {},
-            limit: pz,
-            offset: pz * (p - 1),
-            order: order
-        };
-        for (let key in params) {
-            if (cityCols.indexOf(key) >= 0) {
-                query.where[key] = params[key];
-            }
-        }
-
-        if (!order || typeof order == undefined)
-            query["order"] = [["created_at", "desc"]];
-        let cities = await DB.models['City'].findAll(query);
-        cities = await Promise.all(cities.map(async (city) => {
-            city = await this.useAlternateName(city, lang);
-            return new CityVM(city);
-        }))
-        res.json(this.reply(0, cities));
     }
 
     @doc("根据关键字搜索城市")
