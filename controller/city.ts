@@ -144,10 +144,10 @@ export class CityController extends AbstractController {
         const otherCountryCodeReg = /^!\w{2}$/;
 
         let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, limit = 50 } = req.query;
-        if (!page || !/^\d+$/.test(page)) { 
+        if (!page || !/^\d+$/.test(page.toString())) { 
             page = 1;
         }
-        if (!limit || !/^\d+$/.test(limit)) { 
+        if (!limit || !/^\d+$/.test(limit.toString())) { 
             limit = 50;
         }
         letter = letter.toUpperCase();
@@ -155,7 +155,7 @@ export class CityController extends AbstractController {
             throw new ParamsNotValidError('country_code');
         }
 
-        if (!country_code && (isAbroad == 'true' || isAbroad == true)) { 
+        if (!country_code && (isAbroad.toString() == 'true' || isAbroad == true)) { 
             country_code = '!CN';
         }
 
