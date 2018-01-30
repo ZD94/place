@@ -143,7 +143,13 @@ export class CityController extends AbstractController {
         const countryCodeReg = /^\w{2}$/;
         const otherCountryCodeReg = /^!\w{2}$/;
 
-        let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, pz = 50 } = req.query;
+        let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, limit = 50 } = req.query;
+        if (!page || !/^\d+$/.test(page)) { 
+            page = 1;
+        }
+        if (!limit || !/^\d+$/.test(limit)) { 
+            limit = 50;
+        }
         letter = letter.toUpperCase();
         if (country_code && !countryCodeReg.test(country_code) && !otherCountryCodeReg.test(country_code)) { 
             throw new ParamsNotValidError('country_code');
@@ -174,7 +180,7 @@ export class CityController extends AbstractController {
                 WHERE country_code != '${country_code}' AND "isCity"=true AND substring(letter,1,1) = '${letter}'
             `
         }
-        let pageSQL = ` OFFSET ${(page - 1) * pz} LIMIT ${pz} `;
+        let pageSQL = ` OFFSET ${(page - 1) * limit} LIMIT ${limit} `;
         sql = sql + pageSQL;
 
         let result = await DB.query(sql);
