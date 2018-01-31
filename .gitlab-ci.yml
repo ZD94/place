@@ -98,8 +98,6 @@ deploy:release:
   environment:
     name: release
     url: https://j.jingli365.com/proj/svr-place/
-  variables:
-    JL_APP_POSTGRES_URL: "postgres://placemanager:p1ac3jingli365@jingli365.com:5432/jlplace_new"
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
