@@ -36,7 +36,7 @@ app.use('/manager', function (req, res, next) {
     next();
 })
 
-scannerDecoration(path.join(__dirname, 'controller'), [/\d\.ts$/, /\.js\.map$/]);
+scannerDecoration(path.join(__dirname, 'controller'), [/\.d\.ts$/, /\.js\.map$/]);
 registerControllerToRouter(app, {
     isShowUrls: true,
     kebabCase: false,
