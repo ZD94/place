@@ -8,19 +8,19 @@
 export class CityVmSimple {
     public id: string;
     public name: string;
-    public country_code: string;
+    public countryCode: string;
 
     constructor(public city) {
         this.id = city.id;
         this.name = city.name;
-        this.country_code = city.country_code;
+        this.countryCode = city.country_code;
     }
 
     toJSON() {
         return {
             id: this.id,
             name: this.name,
-            country_code: this.country_code,
+            countryCode: this.countryCode,
         }
     }
 }
