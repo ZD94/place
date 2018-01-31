@@ -93,7 +93,7 @@ deploy:release:
     - /^release$/
   when: manual
   variables:
-    JL_APP_POSTGRES_URL: "postgres://placemanager:p1ac3jingli365@j.jingli365.com:5432/jlplace_new"
+    JL_APP_POSTGRES_URL: "postgres://jingli:J1n9L1.t3ch@j.jingli365.com:5432/jlplace"
     JL_APP_REDIS: "redis://j.jingli365.com:6379"
   environment:
     name: release
