@@ -48,7 +48,7 @@ export = function (DB: Sequelize, Types: DataTypes) {
         deletedAt: "deleted_at",
         underscore: true,
     }
-    let model = DB.define('CityRobot', attributes, options);
+    let model: any = DB.define('CityRobot', attributes, options);
     return model;
 }
 

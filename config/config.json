@@ -5,7 +5,8 @@
   "postgres": {
     "url": "${JL_APP_POSTGRES_URL}"
   },
-  "dataDir": "${{rootDir}}/data",
+  "redis": "${JL_APP_REDIS}",
+  "dataDir": "${{rootDir}}",
   "cron": "0 0 1 * * *",
   "rootDir": "${JL_APP_DATA_DIR}",
   "logger": {

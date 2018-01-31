@@ -10,25 +10,30 @@ export = function (DB: Sequelize, Types: DataTypes) {
             autoIncrement: true,
             primaryKey: true,
         },
-        cityId:{
+        cityId: {
             type: Types.STRING(50)
         },
-        lang:{
+        lang: {
             //geoName
             type: Types.STRING(50)
         },
-        value:{
+        value: {
             //geoNameId
             type: Types.STRING(255)
+        },
+        isRecommend: {
+            type: Types.BOOLEAN,
+            defaultValue: false,
         }
     }
     var options = {
-        tableName:'city_alternate_names',
-        timestamps:true,
-        createdAt:'created_at',
-        updatedAt:'updated_at',
-        deletedAt:'daleted_at',
-        underscore:true,
+        tableName: 'city_alternate_names',
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        deletedAt: 'daleted_at',
+        underscore: true,
     }
-    return DB.define('CityAlternateName',attributes,options)
+    let model: any = DB.define('CityAlternateName', attributes, options);
+    return model;
 }

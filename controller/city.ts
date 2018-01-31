@@ -3,6 +3,7 @@
  */
 
 
+
 'use strict';
 import { Router, Restful, AbstractController } from '@jingli/restful';
 import { DB } from "@jingli/database";
@@ -13,8 +14,9 @@ import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
 import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
-import { getCity, isMatchOldStyle, isMatchNewStyle } from '../service/city';
-import { getCiphers } from 'tls';
+import {getCity, isMatchOldStyle, isMatchNewStyle, getCityAlternateName} from '../service/city';
+import {getNewCityId} from "../service/cache";
+import { toBoolean } from '../service/helper';
 
 let cityCols = [
     "id",
@@ -26,8 +28,6 @@ let cityCols = [
     "location",
     "parentId",
     "pinyin",
-    // "type",
-    // "cityLevel",
 ];
 
 interface ICity {
@@ -58,9 +58,14 @@ export class CityController extends AbstractController {
         return /^\d+$/.test(id) || /^CT_\d+$/.test(id) || /^CTW_\d+$/.test(id);
     }
 
-    $before(req, res, next) {
+    async $before(req, res, next) {
         if (!req.query.lang) {
             req.query.lang = 'zh';
+        }
+        let {id} = req.params;
+        if (id && isMatchOldStyle(id)) {
+            id = await getNewCityId(id);
+            req.params.id = id;
         }
         return next();
     }
@@ -68,7 +73,7 @@ export class CityController extends AbstractController {
     @doc("获取城市详情")
     async get(req, res, next) {
         let { id } = req.params;
-        let { lang, cityCode } = req.query;
+        let { lang} = req.query;
         if (!lang) {
             lang = 'zh';
         }
@@ -85,42 +90,110 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, cityVm));
     }
 
+    @doc("大城市")
+    @Router('/hotcities')
+    async getHotCities(req, res, next) { 
+        let { country_code, isAbroad, lang='zh' } = req.query;
+        let ids;
+        isAbroad = toBoolean(isAbroad);
+        if (!isAbroad) {
+            ids = ['CT_131', //北京
+                'CT_289', //上海
+                'CT_340', //深圳
+                'CT_257', //广州
+                'CT_332', //天津
+                'CT_075', //成都
+                'CT_179', //杭州
+                'CT_167', //大连
+                'CT_218', //武汉
+                'CT_132', //重庆
+                'CT_52408', //台北
+                'CT_2911', //澳门
+                'CT_2912', //香港
+            ]
+        } else { 
+            ids = [
+                'CTW_332', //吉隆坡
+                'CTW_309', //新加坡
+                'CTW_329', //曼谷
+                'CTW_310', //悉尼
+                'CTW_303', //法兰克福
+                'CTW_308', //巴黎
+                'CTW_352', //马尼拉
+                'CTW_332', //吉隆坡
+            ]
+        }
+        let ps = ids.map(async (id: string) => { 
+            return getCity(id);
+        })
+        let cities = await Promise.all<any>(ps);
+        cities = cities.filter((city) => { 
+            return !!city;
+        })
+        ps = cities.map(async (city) => { 
+            city = await this.useAlternateName(city, lang);
+            city = new CityVM(city);
+            return city;
+        })
+        cities = await Promise.all<CityVM>(ps);
+        res.json(this.reply(0, cities));
+    }
+
     @doc('根据首字母获取城市')
     @Router('/getCitiesByLetter')
     async getCityByLetter(req, res, next) {
-        const { letter = 'A', lang = 'zh' } = req.query;
-        let country_code = req.query.country_code;
+        const countryCodeReg = /^\w{2}$/;
+        const otherCountryCodeReg = /^!\w{2}$/;
+
+        let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, limit = 50 } = req.query;
+        isAbroad = toBoolean(isAbroad);
+        if (!page || !/^\d+$/.test(page.toString())) { 
+            page = 1;
+        }
+        if (!limit || !/^\d+$/.test(limit.toString())) { 
+            limit = 50;
+        }
+        if (page < 1) { 
+            page = 1;
+        }
+        if (limit < 1) { 
+            limit = 50;
+        }
+        letter = letter.toUpperCase();
+        if (country_code && !countryCodeReg.test(country_code) && !otherCountryCodeReg.test(country_code)) { 
+            throw new ParamsNotValidError('country_code');
+        }
+
+        if (!country_code && isAbroad == true) { 
+            country_code = '!CN';
+        }
+
         if (!country_code) { 
-            country_code = 'CN'
+            country_code = 'CN';
         }
+        
+        country_code = country_code.toUpperCase();
         let sql = '';
-        if (country_code == 'CN') {
+        if (countryCodeReg.test(country_code)) {
             sql = `
-                SELECT id, name, substring(letter,1,1) as first_letter 
-                FROM cities 
-                WHERE country_code = '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'ADM2' OR fcode = 'PPLC' OR fcode = 'PPLA')
+                SELECT id, name, substring(letter,1,1) as first_letter, country_code
+                FROM city.cities_${country_code.toLowerCase()}
+                WHERE "isCity"=true AND country_code = '${country_code}' AND substring(letter,1,1) = '${letter}'
             `
         }
 
-        if (country_code === '!CN') {
+        if (otherCountryCodeReg.test(country_code)) {
             sql = `
-                SELECT id, name, substring(letter,1,1) as first_letter 
-                FROM cities 
-                WHERE country_code != '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'PPLC' OR fcode = 'PPLA'  OR fcode = 'PPLA2')
+                SELECT id, name, substring(letter,1,1) as first_letter , country_code
+                FROM cities
+                WHERE country_code != '${country_code}' AND "isCity"=true AND substring(letter,1,1) = '${letter}'
             `
         }
-
-        if (country_code !== 'CN' && country_code !== '!CN') {
-            sql = `
-                SELECT id, name, substring(letter,1,1) as first_letter 
-                FROM cities 
-                WHERE country_code = '${country_code}' AND substring(letter,1,1) = '${letter}' AND (fcode = 'PPLC' OR fcode = 'PPLA'  OR fcode = 'PPLA2')
-            `
-        }
+        let pageSQL = ` OFFSET ${(page - 1) * limit} LIMIT ${limit} `;
+        sql = sql + pageSQL;
 
         let result = await DB.query(sql);
         let cities = result[0];
-
         cities = await Promise.all(cities.map( (city) => {
             return this.useAlternateName(city, lang)
         }));
@@ -142,9 +215,7 @@ export class CityController extends AbstractController {
             .findOne({
                 where: {
                     name,
-                    fcode: {
-                        $in: ["ADM1", "ADM2", "ADM3", "PPLC", "PPLA", "PPLA2"]
-                    }
+                    isCity: true,
                 }
             });
         if (!city) { 
@@ -155,30 +226,36 @@ export class CityController extends AbstractController {
 
     @doc("获取城市列表")
     async find(req, res, next) {
-        let { p, pz, order, where, lang } = req.query;
+        let { p, pz, order, lang, isAbroad, countryCode } = req.query;
+        isAbroad = toBoolean(isAbroad);
         p = p || 1;
-        pz = pz || 20;
-        let params = req.query;
-        let query = {
-            where: where || {},
-            limit: pz,
-            offset: pz * (p - 1),
-            order: order
-        };
-        for (let key in params) {
-            if (cityCols.indexOf(key) >= 0) {
-                query.where[key] = params[key];
-            }
+        if (!/^\d+$/.test(p) || p < 1) {
+            p = 1;
         }
-
-        if (!order || typeof order == undefined)
-            query["order"] = [["created_at", "desc"]];
-        let cities = await DB.models['City'].findAll(query);
-        cities = await Promise.all(cities.map(async (city) => {
-            city = await this.useAlternateName(city, lang);
-            return new CityVM(city);
-        }))
-        res.json(this.reply(0, cities));
+        pz = pz || 20;
+        if (!/^\d+$/.test(pz) || pz < 1) {
+            pz = 20;
+        }
+        if (!countryCode && !isAbroad) {
+            countryCode = 'CN';
+        }
+        let where: any = { isCity: true };
+        if (countryCode) {
+            where.country_code = countryCode;
+        }
+        if (!countryCode && isAbroad) {
+            where.country_code = {
+                '$ne': 'CN',
+            };
+        }
+        let offset = (p - 1) * pz;
+        let bigCities = await DB.models['City'].findAll({ where: where, offset: offset, limit: pz, order: order });
+        bigCities = await Promise.all(bigCities.map(async (place) => {
+            place = await this.useAlternateName(place, lang);
+            place = new CityVM(place);
+            return place;
+        }));
+        res.json(this.reply(0, bigCities));
     }
 
     @doc("根据关键字搜索城市")
@@ -199,10 +276,10 @@ export class CityController extends AbstractController {
         }
         let alternates = await DB.models['CityAltName'].findAll({
             where: {
-                value: keyword,
                 lang: {
                     $in: langs
-                }
+                },
+                value: keyword,
             }
         });
         let cityIds: number[] = alternates.map((alternate) => {
@@ -210,7 +287,7 @@ export class CityController extends AbstractController {
         })
         let cities = await DB.models['City'].findAll({
             where: {
-                $or: [{ name: keyword }, { id: { $in: cityIds } }]
+                $or: [{ id: { $in: cityIds } }]
             },
             limit: pz,
             offset: (p - 1) * pz,
@@ -255,6 +332,7 @@ export class CityController extends AbstractController {
             limit: 10,
             order: [orderItem],
         });
+
         cities = await Promise.all(cities.map(async (city) => {
             city = await this.useAlternateName(city, lang);
             return new CityWithDistance(city);
@@ -329,7 +407,7 @@ export class CityController extends AbstractController {
             }
             id = city.id;
         }
-        let alternateName = await DB.models['CityAltName'].findOne({ where: { cityId: id, lang: lang } });
+        let alternateName = await getCityAlternateName(id, lang);
         alternateName = new AlternameVm(alternateName);
         res.json(this.reply(0, alternateName));
     }
@@ -341,7 +419,7 @@ export class CityController extends AbstractController {
         if (!city) { 
             throw new ParamsNotValidError('city');
         }
-        let alternateName = await DB.models['CityAlternateName'].findOne({ where: { cityId: city.id, lang: lang } });
+        let alternateName = await getCityAlternateName(city.id, lang);
         if (alternateName && alternateName.value) {
             city.name = alternateName.value;
         }

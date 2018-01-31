@@ -152,7 +152,7 @@ export default class ManagerCityController extends AbstractController {
             lang = 'zh';
         }
         let { id } = city;
-        let alterName = await DB.models['CityAlternateName'].findOne({ where: { cityId: id, lang: lang } });
+        let alterName = await DB.models['CityAlternateName'].findOne({ where: { cityId: id, lang: lang } , order: [["isRecommend", "desc"]]});
         if (alterName) {
             city.name = alterName.value;
         }
