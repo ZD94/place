@@ -1,7 +1,9 @@
 
 import { DB } from '@jingli/database';
 import {getNewCityId, cacheCityId} from './cache';
-import {getPlace} from './cache-table';
+import { getPlace } from './cache-table';
+import * as Bluebird from 'bluebird';
+
 export async function getCity(id: string) { 
     if (!id) { 
         return null;

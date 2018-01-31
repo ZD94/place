@@ -173,7 +173,7 @@ export class CityController extends AbstractController {
         let sql = '';
         if (countryCodeReg.test(country_code)) {
             sql = `
-                SELECT id, name, substring(letter,1,1) as first_letter 
+                SELECT id, name, substring(letter,1,1) as first_letter, country_code
                 FROM city.cities_${country_code.toLowerCase()}
                 WHERE "isCity"=true AND country_code = '${country_code}' AND substring(letter,1,1) = '${letter}'
             `
@@ -181,7 +181,7 @@ export class CityController extends AbstractController {
 
         if (otherCountryCodeReg.test(country_code)) {
             sql = `
-                SELECT id, name, substring(letter,1,1) as first_letter 
+                SELECT id, name, substring(letter,1,1) as first_letter , country_code
                 FROM cities
                 WHERE country_code != '${country_code}' AND "isCity"=true AND substring(letter,1,1) = '${letter}'
             `
@@ -195,7 +195,7 @@ export class CityController extends AbstractController {
             return this.useAlternateName(city, lang)
         }));
         cities = cities.map( (city) => {
-            return new CityVM(city);
+            return new CityVmSimple(city);
         })
         res.json(this.reply(0, cities));
     }

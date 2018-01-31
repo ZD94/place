@@ -2,7 +2,8 @@
  * Created by Administrator on 2017/7/18.
  */
 
-import {Sequelize, DataTypes} from "sequelize";
+import { Sequelize, DataTypes } from "sequelize";
+
 export = function (DB: Sequelize, Types: DataTypes) {
     var attributes = {
         id: {
@@ -52,7 +53,7 @@ export = function (DB: Sequelize, Types: DataTypes) {
         deletedAt: "deleted_at",
         underscore: true,
     }
-    let model = DB.define('city', attributes, options);
+    let model: any = DB.define('city', attributes, options);
     return model;
 }
 

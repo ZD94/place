@@ -5,7 +5,8 @@
 'use strict';
 
 import path = require("path");
-import express = require("express");
+import * as express from "express";
+import * as Express from 'express-serve-static-core';
 const app = express();
 import { registerControllerToRouter, scannerDecoration, reply } from '@jingli/restful';
 const bodyParser = require('body-parser')
@@ -34,7 +35,7 @@ app.use('/manager', function (req, res, next) {
     next();
 })
 
-scannerDecoration(path.join(__dirname, 'controller'));
+scannerDecoration(path.join(__dirname, 'controller'), [/\d\.ts$/, /\.js\.map$/]);
 registerControllerToRouter(app, {
     isShowUrls: true,
     kebabCase: false,

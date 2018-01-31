@@ -33,7 +33,7 @@ export = function (DB: Sequelize, Types: DataTypes) {
         deletedAt: "deleted_at",
         underscore: true,
     }
-    let model = DB.define('FetchLog', attributes, options);
+    let model: any = DB.define('FetchLog', attributes, options);
     return model;
 }
 
