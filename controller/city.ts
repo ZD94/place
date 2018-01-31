@@ -16,6 +16,7 @@ import doc from '@jingli/doc';
 import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
 import {getCity, isMatchOldStyle, isMatchNewStyle, getCityAlternateName} from '../service/city';
 import {getNewCityId} from "../service/cache";
+import { toBoolean } from '../service/helper';
 
 let cityCols = [
     "id",
@@ -94,6 +95,7 @@ export class CityController extends AbstractController {
     async getHotCities(req, res, next) { 
         let { country_code, isAbroad, lang='zh' } = req.query;
         let ids;
+        isAbroad = toBoolean(isAbroad);
         if (!isAbroad) {
             ids = ['CT_131', //北京
                 'CT_289', //上海
@@ -144,6 +146,7 @@ export class CityController extends AbstractController {
         const otherCountryCodeReg = /^!\w{2}$/;
 
         let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, limit = 50 } = req.query;
+        isAbroad = toBoolean(isAbroad);
         if (!page || !/^\d+$/.test(page.toString())) { 
             page = 1;
         }
@@ -161,7 +164,7 @@ export class CityController extends AbstractController {
             throw new ParamsNotValidError('country_code');
         }
 
-        if (!country_code && (isAbroad.toString() == 'true' || isAbroad == true)) { 
+        if (!country_code && isAbroad == true) { 
             country_code = '!CN';
         }
 
@@ -224,6 +227,7 @@ export class CityController extends AbstractController {
     @doc("获取城市列表")
     async find(req, res, next) {
         let { p, pz, order, lang, isAbroad, countryCode } = req.query;
+        isAbroad = toBoolean(isAbroad);
         p = p || 1;
         if (!/^\d+$/.test(p) || p < 1) {
             p = 1;
@@ -232,16 +236,16 @@ export class CityController extends AbstractController {
         if (!/^\d+$/.test(pz) || pz < 1) {
             pz = 20;
         }
-        if (!countryCode && isAbroad == false) {
+        if (!countryCode && !isAbroad) {
             countryCode = 'CN';
         }
         let where: any = { isCity: true };
         if (countryCode) {
             where.country_code = countryCode;
         }
-        if (!countryCode && isAbroad == true) {
+        if (!countryCode && isAbroad) {
             where.country_code = {
-                '$neq': 'CN',
+                '$ne': 'CN',
             };
         }
         let offset = (p - 1) * pz;
@@ -328,6 +332,7 @@ export class CityController extends AbstractController {
             limit: 10,
             order: [orderItem],
         });
+
         cities = await Promise.all(cities.map(async (city) => {
             city = await this.useAlternateName(city, lang);
             return new CityWithDistance(city);

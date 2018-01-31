@@ -10,8 +10,9 @@ import * as Express from 'express-serve-static-core';
 const app = express();
 import { registerControllerToRouter, scannerDecoration, reply } from '@jingli/restful';
 const bodyParser = require('body-parser')
-import { init } from '@jingli/error';
-
+import { init, IntervalError, CustomerError } from '@jingli/error';
+import Logger from '@jingli/logger';
+const logger = new Logger('http');
 //初始化错误语言包
 init({
     default: 'zh',
@@ -42,10 +43,14 @@ registerControllerToRouter(app, {
 });
 
 app.use(function (err, req, res, next) {
-    if (err.code && err.msg) {
-        return res.json(reply(err.code, err.msg));
-    }
-    next(err);
+    logger.error(err);
+    if (!err.code && !err.msg) {
+        err = new CustomerError(502, '服务器内部错误,请稍后重试!技术支持:suppport@jingli365.com')
+    } 
+
+    res.writeHeader(err.code);
+    res.write(JSON.stringify(reply(err.code, err.msg)));
+    res.end();
 });
 
 export default app;
