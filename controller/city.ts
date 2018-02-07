@@ -30,6 +30,10 @@ let cityCols = [
     "pinyin",
 ];
 
+export const EPlace = { 
+    GLOBALE: '1'
+}
+
 interface ICity {
     id: string,
     name: string,
@@ -78,7 +82,7 @@ export class CityController extends AbstractController {
             lang = 'zh';
         }
         if (id === 0 || id === '0') { 
-            id = 1;
+            id = EPlace.GLOBALE;
         }
         if (!id) { 
             throw new ParamsNotValidError('id');
