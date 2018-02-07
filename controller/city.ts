@@ -77,6 +77,9 @@ export class CityController extends AbstractController {
         if (!lang) {
             lang = 'zh';
         }
+        if (id === 0 || id === '0') { 
+            id = 1;
+        }
         if (!id) { 
             throw new ParamsNotValidError('id');
         }
