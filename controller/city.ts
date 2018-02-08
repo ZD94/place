@@ -275,29 +275,39 @@ export class CityController extends AbstractController {
         if (p < 1 || !/^\d+$/.test(p)) {
             p = 1;
         }
-        let langs = [];
-        if (!lang) {
-            langs.push(...['zh', 'us', 'en']);
-        } else { 
-            langs.push(lang);
+        if (!lang) { 
+            lang = 'zh'
         }
-        let alternates = await DB.models['CityAltName'].findAll({
-            where: {
-                lang: {
-                    $in: langs
-                },
-                value: keyword,
+        if (keyword.length < 2) { 
+            return res.json(this.reply(0, []));
+        }
+        let langs = [];
+        let where: any = {};
+        if (/[\u4e00-\u9fa5]/g.test(keyword)) { 
+            where = { 
+                lang: 'zh',
             }
+        }
+        where.value = {
+            $ilike: `${keyword}%`,
+        }
+
+        let alternates = await DB.models['CityAltName'].findAll({
+            where,
         });
         let cityIds: number[] = alternates.map((alternate) => {
             return alternate.cityId;
         })
         let cities = await DB.models['City'].findAll({
             where: {
-                $or: [{ id: { $in: cityIds } }]
+                $or: [{ id: { $in: cityIds } }],
+                fcode: {
+                    $ne: 'PPL'
+                }
             },
             limit: pz,
             offset: (p - 1) * pz,
+            order: [["isCity", "desc"]]
         });
         cities = await Promise.all(cities.map(async (city) => {
             city = await this.useAlternateName(city, lang);
