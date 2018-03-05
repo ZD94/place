@@ -205,7 +205,7 @@ export class CityController extends AbstractController {
             return this.useAlternateName(city, lang)
         }));
         cities = cities.map( (city) => {
-            return new CityVmSimple(city);
+            return new CityVM(city);
         })
         res.json(this.reply(0, cities));
     }
