@@ -18,7 +18,7 @@ export = function (DB: Sequelize, Types: DataTypes) {
         timestamps: true,
         underscore: true,
     }
-    let model = DB.define('Safe', attributes, options);
+    let model: any = DB.define('Safe', attributes, options);
     return model;
 }
 
