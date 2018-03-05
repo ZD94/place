@@ -9,13 +9,13 @@ import { Router, Restful, AbstractController } from '@jingli/restful';
 import { DB } from "@jingli/database";
 import sequelize = require("sequelize");
 import City = require("../model/City");
-import {CityVM, CityVmSimple, CityWithDistance} from "../vm/city-vm";
+import { CityVM, CityVmSimple, CityWithDistance } from "../vm/city-vm";
 import AlternameVm from "../vm/altername-vm";
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import doc from '@jingli/doc';
 import { ParamsNotValidError, NotFoundError, CustomerError } from '@jingli/error';
-import {getCity, isMatchOldStyle, isMatchNewStyle, getCityAlternateName} from '../service/city';
-import {getNewCityId} from "../service/cache";
+import { getCity, isMatchOldStyle, isMatchNewStyle, getCityAlternateName } from '../service/city';
+import { getNewCityId } from "../service/cache";
 import { toBoolean } from '../service/helper';
 
 let cityCols = [
@@ -30,7 +30,7 @@ let cityCols = [
     "pinyin",
 ];
 
-export const EPlace = { 
+export const EPlace = {
     GLOBALE: '1'
 }
 
@@ -66,7 +66,7 @@ export class CityController extends AbstractController {
         if (!req.query.lang) {
             req.query.lang = 'zh';
         }
-        let {id} = req.params;
+        let { id } = req.params;
         if (id && isMatchOldStyle(id)) {
             id = await getNewCityId(id);
             req.params.id = id;
@@ -77,14 +77,14 @@ export class CityController extends AbstractController {
     @doc("获取城市详情")
     async get(req, res, next) {
         let { id } = req.params;
-        let { lang} = req.query;
+        let { lang } = req.query;
         if (!lang) {
             lang = 'zh';
         }
-        if (id === 0 || id === '0') { 
+        if (id === 0 || id === '0') {
             id = EPlace.GLOBALE;
         }
-        if (!id) { 
+        if (!id) {
             throw new ParamsNotValidError('id');
         }
 
@@ -99,8 +99,8 @@ export class CityController extends AbstractController {
 
     @doc("大城市")
     @Router('/hotcities')
-    async getHotCities(req, res, next) { 
-        let { country_code, isAbroad, lang='zh' } = req.query;
+    async getHotCities(req, res, next) {
+        let { country_code, isAbroad, lang = 'zh' } = req.query;
         let ids;
         isAbroad = toBoolean(isAbroad);
         if (!isAbroad) {
@@ -118,7 +118,7 @@ export class CityController extends AbstractController {
                 'CT_2911', //澳门
                 'CT_2912', //香港
             ]
-        } else { 
+        } else {
             ids = [
                 'CTW_332', //吉隆坡
                 'CTW_309', //新加坡
@@ -130,14 +130,14 @@ export class CityController extends AbstractController {
                 'CTW_332', //吉隆坡
             ]
         }
-        let ps = ids.map(async (id: string) => { 
+        let ps = ids.map(async (id: string) => {
             return getCity(id);
         })
         let cities = await Promise.all<any>(ps);
-        cities = cities.filter((city) => { 
+        cities = cities.filter((city) => {
             return !!city;
         })
-        ps = cities.map(async (city) => { 
+        ps = cities.map(async (city) => {
             city = await this.useAlternateName(city, lang);
             city = new CityVM(city);
             return city;
@@ -154,31 +154,31 @@ export class CityController extends AbstractController {
 
         let { letter = 'A', lang = 'zh', country_code, isAbroad = false, page = 1, limit = 50 } = req.query;
         isAbroad = toBoolean(isAbroad);
-        if (!page || !/^\d+$/.test(page.toString())) { 
+        if (!page || !/^\d+$/.test(page.toString())) {
             page = 1;
         }
-        if (!limit || !/^\d+$/.test(limit.toString())) { 
+        if (!limit || !/^\d+$/.test(limit.toString())) {
             limit = 50;
         }
-        if (page < 1) { 
+        if (page < 1) {
             page = 1;
         }
-        if (limit < 1) { 
+        if (limit < 1) {
             limit = 50;
         }
         letter = letter.toUpperCase();
-        if (country_code && !countryCodeReg.test(country_code) && !otherCountryCodeReg.test(country_code)) { 
+        if (country_code && !countryCodeReg.test(country_code) && !otherCountryCodeReg.test(country_code)) {
             throw new ParamsNotValidError('country_code');
         }
 
-        if (!country_code && isAbroad == true) { 
+        if (!country_code && isAbroad == true) {
             country_code = '!CN';
         }
 
-        if (!country_code) { 
+        if (!country_code) {
             country_code = 'CN';
         }
-        
+
         country_code = country_code.toUpperCase();
         let sql = '';
         if (countryCodeReg.test(country_code)) {
@@ -201,10 +201,10 @@ export class CityController extends AbstractController {
 
         let result = await DB.query(sql);
         let cities = result[0];
-        cities = await Promise.all(cities.map( (city) => {
+        cities = await Promise.all(cities.map((city) => {
             return this.useAlternateName(city, lang)
         }));
-        cities = cities.map( (city) => {
+        cities = cities.map((city) => {
             return new CityVM(city);
         })
         res.json(this.reply(0, cities));
@@ -225,7 +225,7 @@ export class CityController extends AbstractController {
                     isCity: true,
                 }
             });
-        if (!city) { 
+        if (!city) {
             throw new NotFoundError('city');
         }
         return res.json(this.reply(0, new CityVM(city)))
@@ -265,6 +265,34 @@ export class CityController extends AbstractController {
         res.json(this.reply(0, bigCities));
     }
 
+    @doc("获取城市列表-接收where条件")
+    @Router('/byWhere', 'GET')
+    async findWhere(req, res, next) {
+        let { where, pz = 20, p = 1, order, isAbroad, countryCode, lang } = req.query;
+        isAbroad = toBoolean(isAbroad);
+        if (!countryCode && !isAbroad) {
+            countryCode = 'CN';
+        }
+
+        where = where || {} as any;
+        if (countryCode) {
+            where.country_code = countryCode;
+        }
+        if (!countryCode && isAbroad) {
+            where.country_code = {
+                '$ne': 'CN',
+            };
+        }
+        let offset = (p - 1) * pz;
+        let bigCities = await DB.models['City'].findAll({ where, offset, limit: pz, order: order });
+        bigCities = await Promise.all(bigCities.map(async (place) => {
+            place = await this.useAlternateName(place, lang);
+            place = new CityVM(place);
+            return place;
+        }));
+        res.json(this.reply(0, bigCities));
+    }
+
     @doc("根据关键字搜索城市")
     @Router('/search')
     async keyword(req, res, next) {
@@ -275,16 +303,16 @@ export class CityController extends AbstractController {
         if (p < 1 || !/^\d+$/.test(p)) {
             p = 1;
         }
-        if (!lang) { 
+        if (!lang) {
             lang = 'zh'
         }
-        if (keyword.length < 2) { 
+        if (keyword.length < 2) {
             return res.json(this.reply(0, []));
         }
         let langs = [];
         let where: any = {};
-        if (/[\u4e00-\u9fa5]/g.test(keyword)) { 
-            where = { 
+        if (/[\u4e00-\u9fa5]/g.test(keyword)) {
+            where = {
                 lang: 'zh',
             }
         }
@@ -361,9 +389,9 @@ export class CityController extends AbstractController {
     @Router('/:id/children')
     async children(req, res, next) {
         let { id, lang } = req.params;
-        if (isMatchOldStyle(id)) { 
+        if (isMatchOldStyle(id)) {
             let city = await getCity(id);
-            if (!city) { 
+            if (!city) {
                 throw new NotFoundError('city');
             }
             id = city.id;
@@ -399,9 +427,9 @@ export class CityController extends AbstractController {
     @Router('/:id/alternate')
     async alternates(req, res, next) {
         let { id } = req.params;
-        if (isMatchOldStyle(id)) { 
+        if (isMatchOldStyle(id)) {
             let city = await getCity(id);
-            if (!city) { 
+            if (!city) {
                 throw new NotFoundError('city');
             }
             id = city.id;
@@ -417,9 +445,9 @@ export class CityController extends AbstractController {
     @Router('/:id/alternate/:lang')
     async alternate(req, res, next) {
         let { id, lang } = req.params;
-        if (isMatchOldStyle(id)) { 
+        if (isMatchOldStyle(id)) {
             let city = await getCity(id);
-            if (!city) { 
+            if (!city) {
                 throw new NotFoundError('city');
             }
             id = city.id;
@@ -433,7 +461,7 @@ export class CityController extends AbstractController {
         if (!lang) {
             lang = 'zh';
         }
-        if (!city) { 
+        if (!city) {
             throw new ParamsNotValidError('city');
         }
         let alternateName = await getCityAlternateName(city.id, lang);
@@ -460,7 +488,7 @@ export class CityController extends AbstractController {
             throw new NotFoundError("AirportOrStation");
         }
         const city: ICity = await DB.models['City'].findById(alternate.cityId)
-        if (!city) { 
+        if (!city) {
             throw new NotFoundError('city');
         }
         return res.json(this.reply(0, new CityVM(city)))
