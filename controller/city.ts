@@ -268,18 +268,13 @@ export class CityController extends AbstractController {
     @doc("获取城市列表-接收where条件")
     @Router('/byWhere', 'GET')
     async findWhere(req, res, next) {
-        let { where = {}, pz = 20, p = 1, order, isAbroad, countryCode, lang } = req.query;
+        let { where, pz = 20, p = 1, order, isAbroad, countryCode, lang } = req.query;
         isAbroad = toBoolean(isAbroad);
-        if (!/^\d+$/.test(p) || p < 1) {
-            p = 1;
-        }
-        if (!/^\d+$/.test(pz) || pz < 1) {
-            pz = 20;
-        }
         if (!countryCode && !isAbroad) {
             countryCode = 'CN';
         }
 
+        where = where || {} as any;
         if (countryCode) {
             where.country_code = countryCode;
         }
