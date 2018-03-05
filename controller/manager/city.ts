@@ -43,7 +43,7 @@ export default class ManagerCityController extends AbstractController {
 
     @doc("更新城市")
     async update(req, res, next) {
-        let { id } = req.params
+        let { id } = req.params;
         let cityModel = await DB.models['City'].findById(id);
         ["name", "letter", "pinyin", "lat", "lng", "fcode", "country_code", "parentId"].forEach((key) => {
             if (req.body[key]) {
