@@ -320,7 +320,7 @@ export class CityController extends AbstractController {
     @Router('/nearby/:location')
     async nearBy(req, res, next) {
         let { location } = req.params;
-        let { distance, lang } = req.query;
+        let { distance, lang, isCity } = req.query;
         if (!distance || typeof distance == 'undefined' || !/^\d+$/.test(distance)) {
             distance = 10;
         }
@@ -334,18 +334,22 @@ export class CityController extends AbstractController {
         //ST_Distance('LINESTRING(-122.33 47.606, 0.0 51.5)'::geography, 'POINT(-21.96 64.15)':: geography);
         let fn = <any>sequelize.fn('ST_Distance', sequelize.col('location'), `POINT(${point[0]} ${point[1]}):: geography`);
         let orderItem = [fn, 'asc'];
+        let where: any = {
+            lat: {
+                $gte: result["lat_min"],
+                $lte: result["lat_max"]
+            },
+            lng: {
+                $gte: result["lng_min"],
+                $lte: result["lng_max"]
+            }
+        }
+        if (isCity && isCity.toString() == '1') { 
+            where.isCity = true;
+        }
         let cities = await DB.models['City'].findAll({
             attributes: { include: [[fn, 'distance']] },
-            where: {
-                lat: {
-                    $gte: result["lat_min"],
-                    $lte: result["lat_max"]
-                },
-                lng: {
-                    $gte: result["lng_min"],
-                    $lte: result["lng_max"]
-                }
-            },
+            where: where,
             limit: 10,
             order: [orderItem],
         });
