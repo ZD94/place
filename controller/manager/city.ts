@@ -33,7 +33,7 @@ export default class ManagerCityController extends AbstractController {
         }
 
         let sql = `INSERT INTO city.cities_${country_code} (id, name, letter, pinyin, lat, lng, location, fcode, country_code, "parentId", created_at, updated_at) 
-                    VALUES(${id}, '${name}', '${letter}', '${pinyin}', '${lat}', '${lng}', ST_SetSRID(ST_MakePoint(${lng}, ${lat}),4326), '${fcode}', '${country_code}', '${parentId}', now(), now());
+                    VALUES(${id}, '${name}', '${letter}', '${pinyin}', '${lat}', '${lng}', ST_SetSRID(ST_MakePoint(${lat}, ${lng}),4326), '${fcode}', '${country_code}', '${parentId}', now(), now());
         `;
         await DB.query(sql);
         let cityModel = await DB.models['City'].findById(id);
