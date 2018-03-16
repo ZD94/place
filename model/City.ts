@@ -20,10 +20,10 @@ export = function (DB: Sequelize, Types: DataTypes) {
             type: Types.STRING(100)
         },
         lng: {
-            type: Types.REAL
+            type: Types.NUMERIC(15, 11)
         },
         lat: {
-            type: Types.REAL
+            type: Types.NUMERIC(15, 11)
         },
         location: {
             type: "geography(POINT,4326)",
