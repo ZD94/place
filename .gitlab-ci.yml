@@ -14,19 +14,18 @@ stages:
   - docker
   - deploy
 
-
 image: docker:git
 
 before_script:
-  - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY">.k && chmod 600 .k && ssh-add .k && rm -f .k'
+  - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY" | ssh-add -'
   - 'mkdir -p ~/.ssh && echo -e "Host *\n\tStrictHostKeyChecking no\n\tSendEnv JL_APP_*\n\n" > ~/.ssh/config'
-  - mkdir -p /cache/build-cache/.npm && ln -s /cache/build-cache/.npm ~/
+  - npmcache
 
 build:dist:
   stage: build
   only:
     - branches
-  image: $DOCKER_REG/jl-build:v3
+  image: $DOCKER_REG/jl-build:v4
   tags:
     - serial
   cache:
@@ -34,10 +33,7 @@ build:dist:
     paths:
       - dist/
   script:
-    - mkdir -p $NPM_CACHE_DIR/`npmhash`/node_modules && ln -s $NPM_CACHE_DIR/`npmhash`/node_modules .
-    - echo `npmhash`
     - npm install
-    - node --version
     - npm run dist
 
 build:image:
@@ -50,7 +46,6 @@ build:image:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker build -t $DOCKER_CI_NAME . --build-arg NPM_TOKEN=$NPM_TOKEN
     - docker push $DOCKER_CI_NAME
-
 
 deploy:master:
   stage: deploy
