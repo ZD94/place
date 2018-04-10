@@ -76,7 +76,7 @@ deploy:test:
     JL_APP_POSTGRES_URL: "postgres://times:time0418@l.jingli365.com:15432/jlplace_new"
 
 deploy:release:
-  stage: deploy
+  <<: *deploy_template
   only:
     - /^release$/
   when: manual
