@@ -47,13 +47,13 @@ build:image:
   stage: deploy
   environment:
     name: $ENVIROMENT_NAME
-    url: https://$ENVIROMENT_HOST/proj/$DOCKER_NAME/
+    url: https://$ENVIROMENT_HOST/proj/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME/
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
     - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
     - docker push $DOCKER_BRANCH_NAME
-    - echo deploy to https://$ENVIROMENT_HOST
+    - echo deploy to $CI_ENVIRONMENT_URL
     - ssh test@$ENVIROMENT_HOST /home/test/bin/docker_service.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG $CI_ENVIRONMENT_SLUG -p $JL_APP_PORT
 
 deploy:master:
