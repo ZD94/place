@@ -19,7 +19,6 @@ image: docker:git
 before_script:
   - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY" | ssh-add -'
   - 'mkdir -p ~/.ssh && echo -e "Host *\n\tStrictHostKeyChecking no\n\tSendEnv JL_APP_*\n\n" > ~/.ssh/config'
-  - npmcache
 
 build:dist:
   stage: build
@@ -33,6 +32,7 @@ build:dist:
     paths:
       - dist/
   script:
+    - npmcache
     - npm install
     - npm run dist
 
