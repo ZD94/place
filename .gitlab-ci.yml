@@ -12,10 +12,6 @@ stages:
 
 image: docker:git
 
-before_script:
-  - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY" | ssh-add -'
-  - 'mkdir -p ~/.ssh && echo -e "Host *\n\tStrictHostKeyChecking no\n\tSendEnv JL_APP_*\n\n" > ~/.ssh/config'
-
 build:dist:
   stage: build
   only:
@@ -48,6 +44,9 @@ build:image:
   environment:
     name: $ENVIROMENT_NAME
     url: https://$ENVIROMENT_HOST/proj/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME/
+  before_script:
+    - 'eval $(ssh-agent -s) && echo "$SSH_PRIVATE_KEY" | ssh-add -'
+    - 'mkdir -p ~/.ssh && echo -e "Host *\n\tStrictHostKeyChecking no\n\tSendEnv JL_APP_*\n\n" > ~/.ssh/config'
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
