@@ -69,6 +69,7 @@ deploy:test:
   <<: *deploy_template
   only:
     - /^test$/
+    - /^test\//
   when: manual
   variables:
     ENVIROMENT_NAME: test
