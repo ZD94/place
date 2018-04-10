@@ -1,5 +1,4 @@
-FROM dk.jingli365.com/jl-run:v3
-MAINTAINER Wanglihui <lihui.wang@jingli365.com>
+FROM dk.jingli365.com/jl-run:v4
 ARG NPM_TOKEN
 WORKDIR /opt/app
 COPY package.json ./
