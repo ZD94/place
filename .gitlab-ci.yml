@@ -3,10 +3,6 @@ variables:
   DOCKER_NAME: $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME
   DOCKER_CI_NAME: $DOCKER_REG/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME:$CI_COMMIT_SHA
   DOCKER_BRANCH_NAME: $DOCKER_REG/$CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG
-  NPM_CACHE_DIR: /cache/build-cache/npmhash/
-  JL_APP_DAEMON: "true"
-  JL_APP_COMMAND: node main.js >/data/log/nohup.out 2>&1
-  JL_APP_DAEMON_WAIT_INIT: log/nohup.out
   JL_APP_PORT: 8080
   JL_APP_REDIS: "redis://l.jingli365.com:16379"
 stages:
@@ -47,40 +43,37 @@ build:image:
     - docker build -t $DOCKER_CI_NAME . --build-arg NPM_TOKEN=$NPM_TOKEN
     - docker push $DOCKER_CI_NAME
 
-deploy:master:
+.deploy_template: &deploy_template
   stage: deploy
-  only:
-    - /^master$/
   environment:
-    name: master
-    url: https://l.jingli365.com/proj/svr-place/
-  variables:
-    JL_APP_POSTGRES_URL: "postgres://times:time0418@l.jingli365.com:15432/jlplace_new"
+    name: $ENVIROMENT_NAME
+    url: https://$ENVIROMENT_HOST/proj/$DOCKER_NAME/
   script:
     - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
     - docker pull $DOCKER_CI_NAME
     - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
     - docker push $DOCKER_BRANCH_NAME
-    - echo deploy to https://l.jingli365.com
-    - ssh test@l.jingli365.com /home/test/bin/docker_swarm.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG -p 8080
+    - echo deploy to https://$ENVIROMENT_HOST
+    - ssh test@$ENVIROMENT_HOST /home/test/bin/docker_service.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG $CI_ENVIRONMENT_SLUG -p $JL_APP_PORT
+
+deploy:master:
+  <<: *deploy_template
+  only:
+    - /^master$/
+  variables:
+    ENVIROMENT_NAME: master
+    ENVIROMENT_HOST: l.jingli365.com
+    JL_APP_POSTGRES_URL: "postgres://times:time0418@l.jingli365.com:15432/jlplace_new"
 
 deploy:test:
-  stage: deploy
+  <<: *deploy_template
   only:
     - /^test$/
   when: manual
-  environment:
-    name: test
-    url: https://t.jingli365.com/proj/svr-place/
   variables:
+    ENVIROMENT_NAME: test
+    ENVIROMENT_HOST: t.jingli365.com
     JL_APP_POSTGRES_URL: "postgres://times:time0418@l.jingli365.com:15432/jlplace_new"
-  script:
-    - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
-    - docker pull $DOCKER_CI_NAME
-    - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
-    - docker push $DOCKER_BRANCH_NAME
-    - echo deploy to https://t.jingli365.com
-    - ssh test@t.jingli365.com /home/test/bin/docker_swarm.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG -p 8080
 
 deploy:release:
   stage: deploy
@@ -88,31 +81,7 @@ deploy:release:
     - /^release$/
   when: manual
   variables:
+    ENVIROMENT_NAME: release
+    ENVIROMENT_HOST: j.jingli365.com
     JL_APP_POSTGRES_URL: "postgres://jingli:J1n9L1.t3ch@j.jingli365.com:5432/jlplace"
     JL_APP_REDIS: "redis://j.jingli365.com:6379"
-  environment:
-    name: release
-    url: https://j.jingli365.com/proj/svr-place/
-  script:
-    - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
-    - docker pull $DOCKER_CI_NAME
-    - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
-    - docker push $DOCKER_BRANCH_NAME
-    - echo deploy to https://j.jingli365.com
-    - ssh test@j.jingli365.com /home/test/bin/docker_swarm.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG -p 8080
-
-# deploy:geonames:
-#   stage: deploy
-#   only:
-#     - /^geoname$/
-#   when: manual
-#   environment:
-#     name: master
-#     url: https://l.jingli365.com
-#   script:
-#       - docker login -u dockeruser -p $DOCKER_PASSWD $DOCKER_REG
-#       - docker pull $DOCKER_CI_NAME
-#       - docker tag $DOCKER_CI_NAME $DOCKER_BRANCH_NAME
-#       - docker push $DOCKER_BRANCH_NAME
-#       - echo deploy to dtask-node-list hosts
-#       - ssh test@l.jingli365.com /home/test/bin/docker_geoname.sh $DOCKER_REG $DOCKER_NAME $CI_COMMIT_REF_SLUG
