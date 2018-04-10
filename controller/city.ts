@@ -296,7 +296,7 @@ export class CityController extends AbstractController {
     @doc("根据关键字搜索城市")
     @Router('/search')
     async keyword(req, res, next) {
-        let { p, pz, lang, keyword } = req.query;
+        let { p, pz, lang, keyword, op } = req.query;
         if (!/^\d+$/.test(pz) || pz > 50) {
             pz = 50;
         }
@@ -316,9 +316,14 @@ export class CityController extends AbstractController {
                 lang: 'zh',
             }
         }
-        where.value = {
-            $ilike: `${keyword}%`,
+        if (op && op == 'eq') {
+            where.value = keyword;
+        } else { 
+            where.value = {
+                $ilike: `${keyword}%`,
+            }
         }
+
 
         let alternates = await DB.models['CityAltName'].findAll({
             where,
